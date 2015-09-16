@@ -74,16 +74,16 @@ def checkhttp(data):
 rq=RedisQueue('proxy')
 
 while True:
-    if len(outputs)<400:
-        for i in range(100-int(len(outputs)/4)):
-            try:
-                ip=ips.__next__()
-            except StopIteration:
-                # 循环到ip列表最后
-                break
-
-            outputs+=addips(ip)
-    # outputs+=addips('211.218.126.189')
+    # if len(outputs)<400:
+    #     for i in range(100-int(len(outputs)/4)):
+    #         try:
+    #             ip=ips.__next__()
+    #         except StopIteration:
+    #             # 循环到ip列表最后
+    #             break
+    #
+    #         outputs+=addips(ip)
+    outputs+=addips('40.3.219.211')
     flag=0
     readable,writeable,exceptional=select.select(inputs,outputs,[],3)
 
@@ -104,6 +104,7 @@ while True:
         x.close()
 
     for x in writeable:
+        print(x)
         flag=1
         erro=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
         # connect拒绝
@@ -114,6 +115,11 @@ while True:
             continue
         # 未建立连接
         elif erro==errno.EINPROGRESS:
+            continue
+        elif erro==errno.errno.EHOSTUNREACH:
+            print('host unreach.')
+            outputs.remove(x)
+            x.close()
             continue
         # 发送http代理验证数据
         sendhttp(x)
