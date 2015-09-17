@@ -70,7 +70,6 @@ while True:
         if erro==errno.ECONNREFUSED:
             # print('conn refuse.')
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
-            print(len(outputimeouts))
             # outputs.remove(x)
             x.close()
             continue
