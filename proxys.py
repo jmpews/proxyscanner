@@ -22,6 +22,7 @@ for line in ipfile:
     iplist.append((tmp[0],tmp[1]))
 
 ips=utils.genips(iplist)
+# ips=utils.genips([('40.3.125.51','70.0.0.128')])
 inputs=[]
 outputs=[]
 outputimeouts=[]
@@ -31,9 +32,13 @@ outputimeouts=[]
 
 while True:
 
-    # 维持select内outputs
-    if len(outputs)<400:
-        for i in range(100-int(len(outputs)/4)):
+    # 清除超时connect
+    # 由于非阻塞的connect,所以要手动排除超时的connect
+    outputimeouts=list(filter(utils.checktimeout,outputimeouts))
+
+    # 维持数据数量
+    if len(outputimeouts)<400:
+        for i in range(100-int(len(outputimeouts)/4)):
             try:
                 ip=ips.__next__()
             except StopIteration:
@@ -41,13 +46,10 @@ while True:
                 break
             outputimeouts+=utils.addips(ip)
 
-
-    # 清除超时connect
-    # 由于非阻塞的connect,所以要手动排除超时的connect
-    outputimeouts=list(filter(utils.checktimeout,outputimeouts))
+    #补充数据
     outputs=[x[0] for x in outputimeouts]
+
     readable,writeable,exceptional=select.select(inputs,outputs,[],4)
-    print('Len-Write: ',len(writeable))
     for x in readable:
         try:
             data=x.recv(1024)
@@ -64,18 +66,18 @@ while True:
 
     for x in writeable:
         erro=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-        print(erro)
         # connect拒绝
         if erro==errno.ECONNREFUSED:
-            print('conn refuse.')
+            # print('conn refuse.')
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
+            print(len(outputimeouts))
             # outputs.remove(x)
             x.close()
             continue
 
         # 超时
         elif erro==errno.ETIMEDOUT:
-            print('conn timeout.')
+            # print('conn timeout.')
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
             # outputs.remove(x)
             x.close()
@@ -83,7 +85,7 @@ while True:
 
         # 不可到达
         elif erro==errno.EHOSTUNREACH:
-            print('host unreach.')
+            # print('host unreach.')
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
             # outputs.remove(x)
             x.close()
@@ -101,6 +103,6 @@ while True:
     for x in exceptional:
         print('====EXCEP====')
 
-    ip=ips.__next__()
-    print(ip)
-    print('loop...')
+    # ip=ips.__next__()
+    # print(ip)
+    # print('loop...')

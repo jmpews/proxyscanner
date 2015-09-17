@@ -59,8 +59,9 @@ def checktimeout(x):
     t=time.time()
     if x[2]+3<t:
         try:
-            x.getpeername()
-            print('Exp:Host.')
+            x[0].getpeername()
         except:
+            # print('Exp:Host.')
+            x[0].close()
             return False
     return True
