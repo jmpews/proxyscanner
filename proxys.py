@@ -52,13 +52,14 @@ while True:
     readable,writeable,exceptional=select.select(inputs,outputs,[],4)
     for x in readable:
         try:
+            errwrite=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
             data=x.recv(1024)
             print(data)
             print(x.getpeername())
         except Exception as e:
             inputs.remove(x)
+            print(errwrite)
             x.close()
-            print(x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR))
             continue
         if utils.checkhttp(data):
             detial=x.getpeername()
