@@ -56,8 +56,10 @@ while True:
             print(data)
             print(x.getpeername())
         except Exception as e:
+            inputs.remove(x)
             x.close()
-            print(e)
+            print(x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR))
+            continue
         if utils.checkhttp(data):
             detial=x.getpeername()
             print(detial)
