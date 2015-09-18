@@ -15,7 +15,7 @@ import utils
 
 rq=RedisQueue('proxy')
 
-ipfile=open('ip_shanghai.txt','r',encoding='utf-8')
+ipfile=open('ip_jiangsu.txt','r',encoding='utf-8')
 iplist=[]
 for line in ipfile:
     tmp=line.split('\t')
@@ -54,6 +54,7 @@ while True:
         try:
             data=x.recv(1024)
             print(data)
+            print(x.getpeername())
         except Exception as e:
             x.close()
             print(e)
