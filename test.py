@@ -1,14 +1,14 @@
 __author__ = 'jmpews'
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip='49.66.214.30'
-port=8080
+ip='123.56.100.105'
+port=1080
 sock.connect((ip, port))
 
 
-connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (ip,port,ip,port)
+# connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (ip,port,ip,port)
 # connstr="CONNECT github.com:443 HTTP/1.1\r\nHost: github.com:443\r\nProxy-Connection: keep-alive\r\n\r\n"
-sock.send(connstr.encode())
+# sock.send(connstr.encode())
 
 sock.send(b'\x05\x02\x00\x02')
 

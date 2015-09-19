@@ -13,58 +13,60 @@ import utils
 # 3.http代理的验证方式,send一段http报文,验证返回.
 
 
-rq=RedisQueue('proxy')
 
-ipfile=open('ip_jiangsu.txt','r',encoding='utf-8')
+
+rq=RedisQueue('socks5')
+
+# # 爬取IP段
+# ipfile=open('ip_jiangsu.txt','r',encoding='utf-8')
+# iplist=[]
+# for line in ipfile:
+#     tmp=line.split('\t')
+#     iplist.append((tmp[0],tmp[1]))
+# ipfile.close()
+
+# 从米扑上购买代理
+ipfile=open('socks5.txt','r',encoding='utf-8')
 iplist=[]
 for line in ipfile:
-    tmp=line.split('\t')
-    iplist.append((tmp[0],tmp[1]))
+    tmp=line.split(':')
+    iplist.append((tmp[0],int(tmp[1])))
+ipfile.close()
 
-ips=utils.genips(iplist)
-# ips=utils.genips([('40.3.125.51','70.0.0.128')])
+ips=utils.genips(iplist,l=True)
+# ips=utils.genips([('180.161.130.11','180.161.130.12')])
+
+
+
 inputs=[]
 outputs=[]
 outputimeouts=[]
 
 #test
 # outputimeouts+=utils.addips('118.144.108.254')
-
-while True:
-
-    # 清除超时connect
-    # 由于非阻塞的connect,所以要手动排除超时的connect
-    outputimeouts=list(filter(utils.checktimeout,outputimeouts))
-
-    # 维持数据数量
-    if len(outputimeouts)<400:
-        for i in range(100-int(len(outputimeouts)/4)):
-            try:
-                ip=ips.__next__()
-            except StopIteration:
-                # 循环到ip列表最后
-                break
-            outputimeouts+=utils.addips(ip)
-
-    #补充数据
-    outputs=[x[0] for x in outputimeouts]
-
-    readable,writeable,exceptional=select.select(inputs,outputs,[],4)
+flag=0
+while outputimeouts or inputs or not flag:
+    # 清理超时socket和补充数据
+    outputimeouts,outputs,flag=utils.updatelist(outputimeouts,ips)
+    readable,writeable,exceptional=select.select(inputs,outputs,[],2)
     for x in readable:
         try:
             errwrite=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+            detial=x.getpeername()
+            print(detial)
             data=x.recv(1024)
             print(data)
-            print(x.getpeername())
         except Exception as e:
             inputs.remove(x)
-            print(errwrite)
+            print('Read-Error:',errwrite)
             x.close()
             continue
         if utils.checkhttp(data):
-            detial=x.getpeername()
-            print(detial)
-            rq.put(detial[0]+':'+str(detial[1]))
+            print('HTTP: ',detial)
+            rq.put('http:'+detial[0]+':'+str(detial[1]))
+        if utils.checksocks(data):
+            print('SOCK5: ',detial)
+            rq.put('http:'+detial[0]+':'+str(detial[1]))
         inputs.remove(x)
         x.close()
 
@@ -98,14 +100,15 @@ while True:
         # 发送http代理验证数据
         elif erro==0:
             print('connect success')
-            utils.sendhttp(x)
+            utils.sendsocks(x)
+            # utils.sendhttp(x)
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
             # outputs.remove(x)
             inputs.append(x)
 
     for x in exceptional:
         print('====EXCEP====')
-
+    print(outputimeouts,inputs,flag)
     # ip=ips.__next__()
     # print(ip)
     # print('loop...')

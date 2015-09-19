@@ -16,16 +16,21 @@ def checkhttp(data):
 
 # 发送socks验证数据
 def sendsocks(x):
-    x.send(b'\x05\x02\x00\x02')
-
+    try:
+        x.send(b'\x05\x02\x00\x02')
+    except Exception as e:
+        print(e)
+        print('Send Error: ',x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR))
 #检查response是否存在字符串.
 def checksocks(data):
     if data.find(b'\x05\x00') == -1:
         return False
     return True
 
+
 # 采用生成器方式,防止超长list爆内存
-def genips(ipl):
+def genips(ipl,l=False):
+    httports=[80,1080,3128,8080]
     def s2n(str):
         i=[int(x) for x in str.split('.')]
         return i[0]<<24|i[1]<<16|i[2]<<8|i[3]
@@ -36,32 +41,53 @@ def genips(ipl):
             (num&0x0000FF00)>>8,
             (num&0x000000FF)
         )
-    for s,e in ipl:
-        for t in range(s2n(s),s2n(e)):
-            yield n2ip(t)
+    if not l:
+        for s,e in ipl:
+            for t in range(s2n(s),s2n(e)):
+                for port in httports:
+                    yield n2ip(t),port
+    else:
+        for x in ipl:
+            yield x
 
 
 # 对于每个IP生成4个socket,表示检查4个常见端口
-def addips(ip):
-    httports=[80,3128,8080,8888]
-    socks=[]
+def addips(ip,port):
     tm=int(time.time())
-    for port in httports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # 非阻塞connect
-        sock.setblocking(0)
-        err=sock.connect_ex((ip, port))
-        socks.append((sock,sock.fileno(),tm))
-    return socks
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # 非阻塞connect
+    sock.setblocking(0)
+    err=sock.connect_ex((ip, port))
+    return (sock,sock.fileno(),tm)
 
 # 检查sock是否超时
 def checktimeout(x):
     t=time.time()
-    if x[2]+3<t:
+    if x[2]+2<t:
         try:
             x[0].getpeername()
         except:
-            # print('Exp:Host.')
             x[0].close()
             return False
     return True
+
+def updatelist(outputimeouts,ips):
+    # 清除超时connect
+    # 由于非阻塞的connect,所以要手动排除超时的connect
+    flag=0
+    outputimeouts=list(filter(checktimeout,outputimeouts))
+
+    # 维持数据数量
+    if len(outputimeouts)<400:
+        for i in range(400-len(outputimeouts)):
+            try:
+                ip,port=ips.__next__()
+            except StopIteration:
+                # 循环到ip列表最后
+                flag=1
+                break
+            outputimeouts.append(addips(ip,port))
+
+    #补充数据
+    outputs=[x[0] for x in outputimeouts]
+    return outputimeouts,outputs,flag

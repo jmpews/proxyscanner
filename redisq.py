@@ -30,3 +30,6 @@ class RedisQueue(object):
 
     def get_notwait(self):
         return self.get(block=False)
+
+    def clear(self):
+        return self.__db.delete(self.key)
