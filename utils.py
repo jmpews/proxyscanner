@@ -4,13 +4,32 @@ import time
 
 #发送验证字符串
 def sendhttp(x):
-    t=x.getpeername()
-    connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (t[0],t[1],t[0],t[1])
-    x.send(connstr.encode())
+    # # 两种验证方式
+    # # 根据http 的connect方法验证,需要支持connect方法
+    # try:
+    #     t=x.getpeername()
+    # except Exception as e:
+    #     print(e)
+    #     print('Send Error: ',x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR))
+    # connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (t[0],t[1],t[0],t[1])
+    # x.send(connstr.encode())
+
+    #直接尝试访问一次
+    connstr='GET / HTTP/1.1\r\nHost:hm.baidu.com\r\n\r\n'
+    try:
+        x.send(connstr.encode())
+    except Exception as e:
+        print(e)
+        print('Send Error: ',x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR))
+
 
 #检查response是否存在字符串
 def checkhttp(data):
-    if data.find(b'Connection established')==-1:
+    # connect方法验证
+    # if data.find(b'Connection established')==-1:
+
+    # 直接验证200 code
+    if data.find(b'200 OK')==-1:
         return False
     return True
 

@@ -18,24 +18,24 @@ import utils
 # rq=RedisQueue('socks5')
 rq=RedisQueue('https')
 
-# # 爬取IP段
-# ipfile=open('ip_jiangsu.txt','r',encoding='utf-8')
-# iplist=[]
-# for line in ipfile:
-#     tmp=line.split('\t')
-#     iplist.append((tmp[0],tmp[1]))
-# ipfile.close()
-
-# 从米扑上购买代理
-ipfile=open('httph.txt','r',encoding='utf-8')
-# ipfile=open('socks5.txt','r',encoding='utf-8')
+# 爬取IP段
+ipfile=open('ip_zhejiang.txt','r',encoding='utf-8')
 iplist=[]
 for line in ipfile:
-    tmp=line.split(':')
-    iplist.append((tmp[0],int(tmp[1])))
+    tmp=line.split('\t')
+    iplist.append((tmp[0],tmp[1]))
 ipfile.close()
 
-ips=utils.genips(iplist,l=True)
+# # 从米扑上购买代理
+# ipfile=open('httph.txt','r',encoding='utf-8')
+# # ipfile=open('socks5.txt','r',encoding='utf-8')
+# iplist=[]
+# for line in ipfile:
+#     tmp=line.split(':')
+#     iplist.append((tmp[0],int(tmp[1])))
+# ipfile.close()
+
+ips=utils.genips(iplist)
 # ips=utils.genips([('180.161.130.11','180.161.130.12')])
 
 
@@ -55,9 +55,8 @@ while outputimeouts or inputs or not flag:
         try:
             errwrite=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
             detial=x.getpeername()
-            print(detial)
             data=x.recv(1024)
-            print(data)
+            # print(data)
         except Exception as e:
             inputs.remove(x)
             print('Read-Error:',errwrite)
@@ -101,7 +100,7 @@ while outputimeouts or inputs or not flag:
         # 正常connect
         # 发送http代理验证数据
         elif erro==0:
-            print('connect success')
+            # print('connect success')
             # utils.sendsocks(x)
             utils.sendhttp(x)
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
@@ -110,7 +109,8 @@ while outputimeouts or inputs or not flag:
 
     for x in exceptional:
         print('====EXCEP====')
-    print(outputimeouts,inputs,flag)
+
+    # print(outputimeouts,inputs,flag)
     # ip=ips.__next__()
     # print(ip)
     # print('loop...')

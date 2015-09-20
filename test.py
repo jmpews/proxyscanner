@@ -1,21 +1,23 @@
 __author__ = 'jmpews'
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip='123.56.100.105'
-port=1080
-sock.connect((ip, port))
+ip='112.84.130.4:10000'
+ip,port=ip.split(':')
+print(ip,port)
+sock.connect((ip, int(port)))
 
-
-# connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (ip,port,ip,port)
+# connstr='GET / HTTP/1.1\r\nHost:hm.baidu.com\r\n\r\n'
+connstr='GET / HTTP/1.1\r\nHost:weixin.sxuhome.com\r\n\r\n'
+# connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s/:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (ip,port,ip,port)
 # connstr="CONNECT github.com:443 HTTP/1.1\r\nHost: github.com:443\r\nProxy-Connection: keep-alive\r\n\r\n"
-# sock.send(connstr.encode())
-
-sock.send(b'\x05\x02\x00\x02')
+sock.send(connstr.encode())
+#
+# sock.send(b'\x05\x02\x00\x02')
 
 
 r=sock.recv(1024)
 sock.close()
-print(r.find(b'\x05\x00'))
+# print(r.find(b'\x05\x00'))
 print(r)
 import time
 # import select
