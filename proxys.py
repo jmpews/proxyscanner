@@ -15,7 +15,8 @@ import utils
 
 
 
-rq=RedisQueue('socks5')
+# rq=RedisQueue('socks5')
+rq=RedisQueue('https')
 
 # # 爬取IP段
 # ipfile=open('ip_jiangsu.txt','r',encoding='utf-8')
@@ -26,7 +27,8 @@ rq=RedisQueue('socks5')
 # ipfile.close()
 
 # 从米扑上购买代理
-ipfile=open('socks5.txt','r',encoding='utf-8')
+ipfile=open('httph.txt','r',encoding='utf-8')
+# ipfile=open('socks5.txt','r',encoding='utf-8')
 iplist=[]
 for line in ipfile:
     tmp=line.split(':')
@@ -64,9 +66,9 @@ while outputimeouts or inputs or not flag:
         if utils.checkhttp(data):
             print('HTTP: ',detial)
             rq.put('http:'+detial[0]+':'+str(detial[1]))
-        if utils.checksocks(data):
-            print('SOCK5: ',detial)
-            rq.put('http:'+detial[0]+':'+str(detial[1]))
+        # if utils.checksocks(data):
+        #     print('SOCK5: ',detial)
+        #     rq.put('http:'+detial[0]+':'+str(detial[1]))
         inputs.remove(x)
         x.close()
 
@@ -100,8 +102,8 @@ while outputimeouts or inputs or not flag:
         # 发送http代理验证数据
         elif erro==0:
             print('connect success')
-            utils.sendsocks(x)
-            # utils.sendhttp(x)
+            # utils.sendsocks(x)
+            utils.sendhttp(x)
             outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
             # outputs.remove(x)
             inputs.append(x)
