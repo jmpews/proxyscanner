@@ -1,7 +1,7 @@
 __author__ = 'jmpews'
 import socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip='112.84.130.4:10000'
+ip='120.195.196.241:80'
 ip,port=ip.split(':')
 print(ip,port)
 sock.connect((ip, int(port)))

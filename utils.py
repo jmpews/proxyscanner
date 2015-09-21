@@ -82,7 +82,7 @@ def addips(ip,port):
 # 检查sock是否超时
 def checktimeout(x):
     t=time.time()
-    if x[2]+2<t:
+    if x[2]+6<t:
         try:
             x[0].getpeername()
         except:
