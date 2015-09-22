@@ -58,7 +58,7 @@ def dateproxy():
     print(allproxy)
     print(res_https)
     print(res_socks)
-    # db.delete('proxy')
+    db.delete('proxy')
     addproxy(res_https)
     addproxy(res_socks)
 
