@@ -31,37 +31,34 @@ import time
 import redis
 db=redis.StrictRedis(host='linevery.com', port=6379, db=0)
 
-def addproxy(result):
+def addproxy(result,proxydb):
     with db.pipeline() as pipe:
         for x in result:
-            pipe.sismember('proxy',x)
+            pipe.sismember(proxydb,x)
         din=pipe.execute()
     with db.pipeline() as pipe:
         for i in range(len(din)):
             if not din[i]:
-                pipe.sadd('proxy',result[i])
+                pipe.sadd(proxydb,result[i])
         pipe.execute()
 
-def dateproxy():
-    allproxy=db.smembers('proxy')
-    https=[]
-    socks5=[]
-    for x in allproxy:
-        s=x.decode().split(',')
-        if s[2]=='http':
-            https.append((s[0],int(s[1])))
-        else:
-            socks5.append((s[0],int(s[1])))
-
-    res_https=checkproxy(genips(https,l=True))
-    res_socks=checkproxy(genips(socks5,l=True),proxytype='socks5')
-    print(allproxy)
-    print(res_https)
-    print(res_socks)
-    db.delete('proxy')
-    addproxy(res_https)
-    addproxy(res_socks)
-
+def dateproxy(proxydb,proxytype='http'):
+    allproxy=db.smembers(proxydb)
+    proxys=[]
+    if proxytype=='http':
+        for x in allproxy:
+            s=x.decode().split(',')
+            proxys.append((s[0],int(s[1])))
+        res_proxy=checkproxy(genips(proxys,l=True))
+        db.delete(proxydb)
+        addproxy(res_proxy,proxydb)
+    else:
+        for x in allproxy:
+            s=x.decode().split(',')
+            proxys.append((s[0],int(s[1])))
+        res_proxy=checkproxy(genips(proxys,l=True),proxytype='socks5')
+        db.delete(proxydb)
+        addproxy(res_proxy,proxydb)
 # while True:
 #     dateproxy()
 #     time.sleep(3)
@@ -69,21 +66,23 @@ def dateproxy():
 while True:
 
     for i in range(3):
-        proxx=db.smembers('proxy')
-        if len(proxx)>40:
-            print('over.............')
-            continue
+        proxyhttp=db.smembers('proxyhttp')
+        proxysocks5=db.smembers('proxysocks')
 
-        https=gethttps()
-        ips=genips(https,l=True)
-        result=checkproxy(ips)
-        addproxy(result)
-
-        socks=getsocks5()
-        ips=genips(socks,l=True)
-        result=checkproxy(ips,proxytype='socks5')
-        addproxy(result)
+        if len(proxyhttp)<30:
+            https=gethttps()
+            ips=genips(https,l=True)
+            result=checkproxy(ips)
+            print(result)
+            addproxy(result,'proxyhttp')
+        if len(proxysocks5)<30:
+            socks=getsocks5()
+            ips=genips(socks,l=True)
+            result=checkproxy(ips,proxytype='socks5')
+            print(result)
+            addproxy(result,'proxysocks')
         time.sleep(5)
-        print('sleep.')
+        print('sleep...')
 
-    dateproxy()
+    dateproxy('proxyhttp','http')
+    dateproxy('proxysocks','socks5')
