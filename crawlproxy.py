@@ -81,7 +81,7 @@ while True:
             result=checkproxy(ips,proxytype='socks5')
             print(result)
             addproxy(result,'proxysocks')
-        time.sleep(5)
+        time.sleep(300)
         print('sleep...')
 
     dateproxy('proxyhttp','http')
