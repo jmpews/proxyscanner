@@ -43,34 +43,37 @@ def checkproxy(ips,proxytype='http'):
     inputs=[]
     outputs=[]
     outputimeouts=[]
+    inputimeouts=[]
     result=[]
     flag=0
     while outputimeouts or inputs or not flag:
         # 清理超时socket和补充数据
-        outputimeouts,outputs,flag=utils.updatelist(outputimeouts,ips)
+        outputimeouts,outputs,inputimeouts,inputs,flag=utils.updatelist(outputimeouts,inputimeouts,ips)
         readable,writeable,exceptional=select.select(inputs,outputs,[],2)
         for x in readable:
             try:
                 errwrite=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
                 detial=x.getpeername()
+                # print(detial)
                 data=x.recv(1024)
                 # print(data)
             except Exception as e:
-                inputs.remove(x)
+                inputimeouts=list(filter(lambda tm:tm[0].fileno()!=x.fileno(),inputimeouts))
                 print('Read-Error:',errwrite)
                 x.close()
                 continue
             if proxytype=='http':
                 if utils.checkhttp(data):
-                    print('HTTP: ',detial)
+                    # print('HTTP: ',detial)
                     result.append(','.join([detial[0],str(detial[1]),proxytype]))
                     # rq.put('http:'+detial[0]+':'+str(detial[1]))
             else:
                 if utils.checksocks(data):
-                    print('SOCK5: ',detial)
-                    result.append(','.join([detial[0],detial[1],proxytype]))
+                    # print('SOCK5: ',detial)
+                    result.append(','.join([detial[0],str(detial[1]),proxytype]))
                     # rq.put('http:'+detial[0]+':'+str(detial[1]))
-            inputs.remove(x)
+            inputimeouts=list(filter(lambda tm:tm[0].fileno()!=x.fileno(),inputimeouts))
+            # inputs.remove(x)
             x.close()
 
         for x in writeable:
@@ -109,7 +112,9 @@ def checkproxy(ips,proxytype='http'):
                     utils.sendsocks(x)
                 outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
                 # outputs.remove(x)
-                inputs.append(x)
+                inputimeouts.append([x,time.time()])
+                # inputs.append(x)
+
 
         for x in exceptional:
             print('====EXCEP====')

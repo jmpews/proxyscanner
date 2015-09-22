@@ -80,7 +80,7 @@ def addips(ip,port):
     return (sock,sock.fileno(),tm)
 
 # 检查sock是否超时
-def checktimeout(x):
+def checktimeout_output(x):
     t=time.time()
     if x[2]+6<t:
         try:
@@ -90,11 +90,21 @@ def checktimeout(x):
             return False
     return True
 
-def updatelist(outputimeouts,ips):
+def checktimeout_input(x):
+    t=time.time()
+    if x[1]+5<t:
+        x[0].close()
+        return False
+    return True
+
+
+def updatelist(outputimeouts,inputimeouts,ips):
     # 清除超时connect
     # 由于非阻塞的connect,所以要手动排除超时的connect
     flag=0
-    outputimeouts=list(filter(checktimeout,outputimeouts))
+
+    outputimeouts=list(filter(checktimeout_output,outputimeouts))
+    inputimeouts=list(filter(checktimeout_input,inputimeouts))
 
     # 维持数据数量
     if len(outputimeouts)<400:
@@ -109,4 +119,5 @@ def updatelist(outputimeouts,ips):
 
     #补充数据
     outputs=[x[0] for x in outputimeouts]
-    return outputimeouts,outputs,flag
+    inputs=[x[0] for x in inputimeouts]
+    return outputimeouts,outputs,inputimeouts,inputs,flag
