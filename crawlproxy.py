@@ -4,7 +4,7 @@ from utils import genips
 from proxys import checkproxy
 def gethttps():
     result=[]
-    url='http://proxy.mimvp.com/api/fetch.php?orderid=860150919155536286&num=30&country_group=1&http_type=1,2&anonymous=5&result_format=json'
+    url='http://proxy.mimvp.com/api/fetch.php?orderid=860150919155536286&num=30&country_group=1&http_type=1,2&isp=3,5&anonymous=5&result_format=json'
     r=requests.get(url)
     r=r.json()
     r=r['result']
@@ -17,7 +17,7 @@ def gethttps():
 
 def getsocks5():
     result=[]
-    url='http://proxy.mimvp.com/api/fetch.php?orderid=860150919155536286&num=30&country_group=1&http_type=5&anonymous=5&result_format=json'
+    url='http://proxy.mimvp.com/api/fetch.php?orderid=860150919155536286&num=30&country_group=1&http_type=5&isp=3,5&anonymous=5&result_format=json'
     r=requests.get(url)
     r=r.json()
     r=r['result']

@@ -38,3 +38,10 @@ import time
 # ipfile=open('ip_shanghai.txt','r',encoding='utf-8')
 # for line in ipfile:
 #     print(line.split('\t'))
+import redis
+db=redis.StrictRedis(host='linevery.com', port=6379, db=0)
+proxys=db.smembers('proxyhttp')
+for x in proxys:
+    x=x.decode()
+    proxy=x.split(',')
+    print(proxy[0]+':'+proxy[1])
