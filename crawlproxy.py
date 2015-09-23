@@ -66,6 +66,7 @@ def dateproxy(proxydb,proxytype='http'):
 while True:
 
     for i in range(3):
+        time.sleep(5)
         proxyhttp=db.smembers('proxyhttp')
         proxysocks5=db.smembers('proxysocks')
 
