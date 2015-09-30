@@ -11,8 +11,8 @@ class Sock(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock_fileno = self.sock.fileno()
         self.starttime = int(time.time())
-        # 非阻塞connect
         self.sock.setblocking(0)
+        # EINPROGRESS
         self.errno = self.sock.connect_ex((ip, port))
         self.connected = False
 
@@ -27,11 +27,12 @@ class Sock(object):
         return False
 
     def checkerror(self):
+        # 常见error ECONNREFUSED ETIMEDOUT EHOSTUNREACH
         self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-        if self.errno != 0:
-            self.sock.close()
-            return False
-        return True
+        if self.errno == 0 or self.errno==socket.errno.EINPROGRESS:
+            return True
+        self.sock.close()
+        return False
 
     def checkconnected(self):
         try:
@@ -112,7 +113,7 @@ class Proxy:
     def initialize(cls, ip, port, proxytype):
         if proxytype == 'http':
             return ProxyHttp(ip, port, proxytype)
-        elif proxytype == 'http':
+        elif proxytype == 'socks':
             return ProxySocks(ip, port, proxytype)
 
 
@@ -153,7 +154,7 @@ class ProxySock(Sock):
         if self.checkerror() and self.checkconnected():
             data = self.sock.recv(1024)
             if self.proxytype == 'http':
-                if data.find(b'\x05\x00') != -1:
+                if data.find(b'200 OK') != -1:
                     # 验证成功处理
                     return True
             elif self.proxytype == 'socks':
@@ -164,16 +165,16 @@ class ProxySock(Sock):
 
 class ProxyIOLoop(object):
     def __init__(self):
-        # 可以选择将output和input分开存放
+        # 一种方法,可以选择将output和input分开存放
         # self.outputsocks={}
         # self.inputsocks={}
-        # 合并,用connected属性标记区分
+        # 另一种方法,合并,用connected属性标记区分
         self.socks = {}
         self.runout = False
         self.ips=None
         self.ipsl=[]
 
-    # 现成ip列表
+    # ip列表
     def addipsl(self, ipsl, proxytype='http'):
         # 根据现成list生成
         # [[ip,port]]
@@ -204,9 +205,9 @@ class ProxyIOLoop(object):
 
         self.ips = func()
 
+    # 删除超时socket,补充列表数量
     def updateips(self,lens=213):
 
-        # 删除超时socket
         # 可以使用filter,一句搞定.
         # self.socks=dict(filter(lambda x:not x[1].checktimeout(4,5),self.socks.items()))
         tmp_value=[]
@@ -243,28 +244,29 @@ class ProxyIOLoop(object):
                     # 执行完毕
                     self.runout = True
 
-        # 扫描两次,可以通过for用一次替代
+        # 扫描两次,可以通过for用一次替代,也可以使用filter
+        # self.outputs=list(filter(lambda x:not x.connected,self.socks.values()))
         self.outputs = [x.sock for x in self.socks.values() if not x.connected]
         self.inputs = [x.sock for x in self.socks.values() if x.connected]
 
     def start(self):
         while True:
+            # 先检查超时socket
             self.updateips()
             readable, writeable, exceptional = select.select(self.inputs, self.outputs, self.outputs + self.inputs, 1)
             for x in writeable:
                 sock = self.socks[x.fileno()]
                 if sock.senddata():
                     sock.setconnected()
-
+                else:
+                    self.socks.pop(sock.sock_fileno)
             for x in readable:
-                sock = self.socks[x.fileno()]
-                self.socks.pop(x.fileno())
+                sock = self.socks.pop(x.fileno())
                 if sock.checkdata():
                     print(sock.ip,':',sock.port)
 
             for x in exceptional:
                 print('proxy error!')
-
             # 生成器没有数据并且socks全部处理完毕,跳出循环.
             if len(self.socks)==0 and not self.runout:
                 break
