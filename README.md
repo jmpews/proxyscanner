@@ -21,3 +21,25 @@
 
 ## Socks5代理
 当你发送`b'\x05\x02\x00\x02'`，接收到的data包含`b'\x05\x00'`,可以作为代理，这里仅仅是简单说明，但其中还涉及到验证等等复杂问题。
+
+```
+# 发送http验证数据
+sendhttp(x):
+
+# 非阻塞connect，然后丢进select，标记connect当前时间。以便做超时处理
+connect(ip,port)
+#return (sock,sock.fileno(),tm)
+
+```
+
+### `genips(ipl,list=False)`
+采用生成器方式,返回生成器。主要是防止采用IP段扫描时爆掉list
+
+```
+# 设定IP段扫描
+genips([('180.161.130.11','180.161.130.12')])
+
+# 设定扫描列表
+iplist=[(ip,port),(ip,port),(ip,port)]
+genips(iplist,list=True)
+```

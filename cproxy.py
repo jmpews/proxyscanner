@@ -11,9 +11,7 @@ def gethttps():
     for x in r:
         ip,port=x['ip:port'].split(':')
         result.append((ip,int(port)))
-    # print(result)
     return result
-# gethttps()
 
 def getsocks5():
     result=[]
@@ -24,24 +22,27 @@ def getsocks5():
     for x in r:
         ip,port=x['ip:port'].split(':')
         result.append((ip,int(port)))
-    # print(result)
     return result
 
 import time
 import redis
 db=redis.StrictRedis(host='linevery.com', port=6379, db=0)
 
+# 添加代理到队列
 def addproxy(result,proxydb):
+    # 检查代理是否已经存在
     with db.pipeline() as pipe:
         for x in result:
             pipe.sismember(proxydb,x)
         din=pipe.execute()
+    # 将不存在的代理丢入队列
     with db.pipeline() as pipe:
         for i in range(len(din)):
             if not din[i]:
                 pipe.sadd(proxydb,result[i])
         pipe.execute()
 
+# 检查队列内代理是否过期
 def dateproxy(proxydb,proxytype='http'):
     allproxy=db.smembers(proxydb)
     proxys=[]
@@ -59,12 +60,9 @@ def dateproxy(proxydb,proxytype='http'):
         res_proxy=checkproxy(genips(proxys,l=True),proxytype='socks5')
         db.delete(proxydb)
         addproxy(res_proxy,proxydb)
-# while True:
-#     dateproxy()
-#     time.sleep(3)
+
 
 while True:
-
     for i in range(3):
         time.sleep(5)
         proxyhttp=db.smembers('proxyhttp')
@@ -76,6 +74,7 @@ while True:
             result=checkproxy(ips)
             print(result)
             addproxy(result,'proxyhttp')
+
         if len(proxysocks5)<30:
             socks=getsocks5()
             ips=genips(socks,l=True)
@@ -87,3 +86,4 @@ while True:
 
     dateproxy('proxyhttp','http')
     dateproxy('proxysocks','socks5')
+

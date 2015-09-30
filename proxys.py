@@ -39,6 +39,7 @@ import utils
 
 #test
 # outputimeouts+=utils.addips('118.144.108.254')
+
 def checkproxy(ips,proxytype='http'):
     inputs=[]
     outputs=[]
@@ -64,12 +65,10 @@ def checkproxy(ips,proxytype='http'):
                 continue
             if proxytype=='http':
                 if utils.checkhttp(data):
-                    # print('HTTP: ',detial)
                     result.append(','.join([detial[0],str(detial[1]),proxytype]))
                     # rq.put('http:'+detial[0]+':'+str(detial[1]))
             else:
                 if utils.checksocks(data):
-                    # print('SOCK5: ',detial)
                     result.append(','.join([detial[0],str(detial[1]),proxytype]))
                     # rq.put('http:'+detial[0]+':'+str(detial[1]))
             inputimeouts=list(filter(lambda tm:tm[0].fileno()!=x.fileno(),inputimeouts))
@@ -80,40 +79,31 @@ def checkproxy(ips,proxytype='http'):
             erro=x.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
             # connect拒绝
             if erro==errno.ECONNREFUSED:
-                # print('conn refuse.')
                 outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
-                # outputs.remove(x)
                 x.close()
                 continue
 
             # 超时
             elif erro==errno.ETIMEDOUT:
-                # print('conn timeout.')
                 outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
-                # outputs.remove(x)
                 x.close()
                 continue
 
             # 不可到达
             elif erro==errno.EHOSTUNREACH:
-                # print('host unreach.')
                 outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
-                # outputs.remove(x)
                 x.close()
                 continue
 
             # 正常connect
             # 发送http代理验证数据
             elif erro==0:
-                # print('connect success')
                 if proxytype=='http':
                     utils.sendhttp(x)
                 else:
                     utils.sendsocks(x)
                 outputimeouts=list(filter(lambda tm:tm[1]!=x.fileno(),outputimeouts))
-                # outputs.remove(x)
                 inputimeouts.append([x,time.time()])
-                # inputs.append(x)
 
 
         for x in exceptional:

@@ -1,24 +1,24 @@
 __author__ = 'jmpews'
 import socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip='61.130.97.212:8099'
-ip,port=ip.split(':')
-print(ip,port)
-sock.connect((ip, int(port)))
-
-# connstr='GET / HTTP/1.1\r\nHost:hm.baidu.com\r\n\r\n'
-connstr='GET / HTTP/1.1\r\nHost:weixin.sxuhome.com\r\n\r\n'
-# connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s/:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (ip,port,ip,port)
-# connstr="CONNECT github.com:443 HTTP/1.1\r\nHost: github.com:443\r\nProxy-Connection: keep-alive\r\n\r\n"
-sock.send(connstr.encode())
+# sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# ip='61.130.97.212:8099'
+# ip,port=ip.split(':')
+# print(ip,port)
+# sock.connect((ip, int(port)))
 #
-# sock.send(b'\x05\x02\x00\x02')
-
-
-r=sock.recv(1024)
-sock.close()
+# # connstr='GET / HTTP/1.1\r\nHost:hm.baidu.com\r\n\r\n'
+# connstr='GET / HTTP/1.1\r\nHost:weixin.sxuhome.com\r\n\r\n'
+# # connstr="CONNECT %s:%s HTTP/1.1\r\nHost: %s/:%s\r\nProxy-Connection: keep-alive\r\n\r\n" % (ip,port,ip,port)
+# # connstr="CONNECT github.com:443 HTTP/1.1\r\nHost: github.com:443\r\nProxy-Connection: keep-alive\r\n\r\n"
+# sock.send(connstr.encode())
+# #
+# # sock.send(b'\x05\x02\x00\x02')
+#
+#
+# r=sock.recv(1024)
+# sock.close()
 # print(r.find(b'\x05\x00'))
-print(r)
+# print(r)
 import time
 # import select
 # sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,10 +38,17 @@ import time
 # ipfile=open('ip_shanghai.txt','r',encoding='utf-8')
 # for line in ipfile:
 #     print(line.split('\t'))
-import redis
-db=redis.StrictRedis(host='linevery.com', port=6379, db=0)
-proxys=db.smembers('proxyhttp')
-for x in proxys:
-    x=x.decode()
-    proxy=x.split(',')
-    print(proxy[0]+':'+proxy[1])
+# import redis
+# db=redis.StrictRedis(host='linevery.com', port=6379, db=0)
+# proxys=db.smembers('proxyhttp')
+# for x in proxys:
+#     x=x.decode()
+#     proxy=x.split(',')
+#     print(proxy[0]+':'+proxy[1])
+
+def func(arg,*args,**kwargs):
+    t=3
+    def fun():
+        print(t)
+    return fun()
+t=func(1,2,3)
