@@ -46,9 +46,34 @@ import time
 #     proxy=x.split(',')
 #     print(proxy[0]+':'+proxy[1])
 
-def func(arg,*args,**kwargs):
-    t=3
-    def fun():
-        print(t)
-    return fun()
-t=func(1,2,3)
+# import threading
+#
+# mylock = threading.RLock()
+# class LockContext(object):
+#     def __init__(self, lock):
+#         self.lock = lock
+#
+#     def __enter__(self):
+#         self.lock.acquire()
+#
+#     def __exit__(self, type, value, traceback):
+#         if type != None:
+#             pass
+#         self.lock.release()
+#         return False
+#
+# lock=LockContext(mylock)
+#
+# class Test(threading.Thread):
+#     def __init__(self):
+#         threading.Thread.__init__(self)
+#     def run(self,arg):
+#         print(arg)
+# t=Test()
+# t.func()
+f=open('r.txt','a')
+f.write('testset\n')
+f.close()
+f=open('r.txt','a')
+f.write('testset\n')
+f.close()

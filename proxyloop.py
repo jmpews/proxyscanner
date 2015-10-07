@@ -2,6 +2,10 @@ __author__ = 'jmpews'
 import socket
 import time
 import select
+import threading
+
+MyLock = threading.RLock()
+
 
 # 一个socket对象
 class Sock(object):
@@ -163,14 +167,28 @@ class ProxySock(Sock):
                     # 验证成功处理
                     return True
 
+# 暂不使用
+class LockContext(object):
+    def __init__(self, lock):
+        self.lock = lock
 
-class ProxyIOLoop(object):
-    def __init__(self):
+    def __enter__(self):
+        self.lock.acquire()
+
+    def __exit__(self, type, value, traceback):
+        if type != None:
+            pass
+        self.lock.release()
+        return False
+
+class ProxyIOLoop(threading.Thread):
+    def __init__(self,callback=None):
+        threading.Thread.__init__(self)
         # 如何处理待接受和待发送的socket?
         # 一种方法,可以选择将output和input分开存放
         self.outputsocks={}
         self.inputsocks={}
-
+        self.callback=callback
         # 另一种方法,合并,用connected属性标记区分,在select需要重新生成两部socket列表
         # self.socks = {}
         self.runout = False
@@ -247,7 +265,7 @@ class ProxyIOLoop(object):
         self.outputs = [x.sock for x in self.outputsocks.values() if not x.connected]
         self.inputs = [x.sock for x in self.inputsocks.values() if x.connected]
 
-    def start(self,callback=None):
+    def run(self):
         while True:
             # 先检查超时socket
             self.updateips()
@@ -261,11 +279,12 @@ class ProxyIOLoop(object):
             for x in readable:
                 sock = self.inputsocks.pop(x.fileno())
                 if sock.checkdata():
-                    if callback != None:
-                        callback(sock.ip,sock.port,sock.proxytype)
+                    if self.callback != None:
+                        self.callback(sock.ip,sock.port,sock.proxytype)
 
             for x in exceptional:
                 print('proxy error!')
             # 生成器没有数据并且socks全部处理完毕,跳出循环.
             if len(self.inputsocks)==0 and len(self.outputsocks)==0 and self.runout:
+                print('Loop empty...')
                 break
