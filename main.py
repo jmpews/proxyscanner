@@ -23,9 +23,14 @@ def getsocks5():
         result.append((ip,int(port)))
     return result
 
+def func(ip,port,proxytype):
+    print(ip,':',port,proxytype)
 r_http=gethttps()
+print(r_http)
 r_socks=getsocks5()
+print(r_socks)
 proxyloop=ProxyIOLoop()
-# proxyloop.addipsl(r_http)
-proxyloop.addipsl(r_socks,proxytype='socks')
-proxyloop.start()
+proxyloop.addipsl(r_http)
+# proxyloop.addipsl(r_socks,proxytype='socks')
+proxyloop.scanips([('183.129.190.176','183.129.190.180')],proxytype='socks')
+proxyloop.start(callback=func)
