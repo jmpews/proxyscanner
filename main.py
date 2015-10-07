@@ -1,4 +1,6 @@
 __author__ = 'jmpews'
+__email__ = 'jmpews@gmail.com'
+
 import requests
 from proxyloop import ProxyIOLoop
 def gethttps():
@@ -31,14 +33,21 @@ def func(ip,port,proxytype):
     f.close()
 
 
-
+# 添加基本回调,可以丢进redis
 proxyloop=ProxyIOLoop(callback=func)
 
+# 检测proxy是否可用
 r_http=gethttps()
 proxyloop.addipsl(r_http)
 
-proxyloop.scanips([('183.129.190.176','183.129.190.180')],proxytype='socks')
+# 添加一个IP段列表,进行扫描
+iplists=[]
+ipfile=open('ip_shanghai.txt','r',encoding='utf-8')
+for line in ipfile:
+    tmp=line.split('\t')
+    iplists.append((tmp[0],tmp[1]))
+
+proxyloop.scanips(iplists,proxytype='socks')
 
 proxyloop.start()
-
-
+print('Proxy Scan Start...')

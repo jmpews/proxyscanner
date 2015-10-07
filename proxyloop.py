@@ -1,4 +1,6 @@
 __author__ = 'jmpews'
+__email__ = 'jmpews@gmail.com'
+
 import socket
 import time
 import select

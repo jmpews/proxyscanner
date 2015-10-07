@@ -22,4 +22,26 @@
 
 
 ## How to Use it ?
+### 1. 验证Proxy_ip列表
 
+```
+def func(ip,port,proxytype):
+    print(ip,':',port,proxytype)
+
+proxyloop=ProxyIOLoop(callback=func)
+proxyloop.addipsl([('183.129.190.179',1080),('183.129.190.178',1080)],roxytype='http')
+proxyloop.start()
+```
+
+### 2. 扫描IP段是否存在代理
+
+```
+def func(ip,port,proxytype):
+    print(ip,':',port,proxytype)
+
+proxyloop=ProxyIOLoop(callback=func)
+proxyloop.scanips([('202.38.134.0', '202.38.134.255'),('122.144.128.0', '122.144.255.255')],proxytype='socks',ports=[80, 1080, 3128, 8080])
+proxyloop.start()
+```
+
+### 3. 可以在回调函数处理中将扫描到的proxy丢到redis.
