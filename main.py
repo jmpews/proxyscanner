@@ -2,6 +2,7 @@ __author__ = 'jmpews'
 __email__ = 'jmpews@gmail.com'
 
 import requests
+import time
 from proxyloop import ProxyIOLoop
 def gethttps():
     result=[]
@@ -28,7 +29,7 @@ def getsocks5():
 def func(ip,port,proxytype):
     print(ip,':',port)
     f=open('r.txt','a')
-    f.write(ip+':'+str(port)+' '+proxytype+'\n')
+    f.write(ip+':'+str(port)+' '+proxytype+'  '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+'\n')
     f.flush()
     f.close()
 

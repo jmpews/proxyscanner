@@ -236,7 +236,6 @@ class ProxyIOLoop(threading.Thread):
 
         # 补充socket数量,以保持充分利用
         a=lens-len(self.outputsocks)-len(self.inputsocks)
-        print('len',a)
         if a>1 and len(self.ipsl)!=0:
             if len(self.ipsl)<a:
                 for ip,port,proxytype in self.ipsl:
