@@ -47,7 +47,7 @@ for line in ipfile:
     tmp=line.split('\t')
     iplists.append((tmp[0],tmp[1]))
 
-proxyloop.scanips(iplists,proxytype='socks')
+proxyloop.scanips(iplists,proxytype='http')
 
 proxyloop.start()
 print('Proxy Scan Start...')

@@ -228,7 +228,7 @@ class ProxyIOLoop(threading.Thread):
         self.ips = func()
 
     # 删除超时socket,补充列表数量
-    def updateips(self,lens=213):
+    def updateips(self,lens=900):
 
         # 使用filter,也可以使用for
         self.outputsocks=dict(filter(lambda x:not x[1].checktimeout(4),self.outputsocks.items()))
