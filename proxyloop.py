@@ -206,7 +206,7 @@ class ProxyIOLoop(threading.Thread):
 
     # 扫描IP段
     # 采用生成器防止大列表爆掉
-    def scanips(self, ips, proxytype='http', ports=[80, 1080, 3128, 8080]):
+    def scanips(self, ips, proxytype='http', ports=[80,3128]):
         def s2n(str):
             i = [int(x) for x in str.split('.')]
             return i[0] << 24 | i[1] << 16 | i[2] << 8 | i[3]
@@ -236,6 +236,7 @@ class ProxyIOLoop(threading.Thread):
 
         # 补充socket数量,以保持充分利用
         a=lens-len(self.outputsocks)-len(self.inputsocks)
+        print('len',a)
         if a>1 and len(self.ipsl)!=0:
             if len(self.ipsl)<a:
                 for ip,port,proxytype in self.ipsl:

@@ -12,7 +12,7 @@
 
 * 1.IP的区段 http://ips.chacuo.net/
 * 2.非阻塞connect的返回码'EINPROGRESS',表示正在连接
-* 3.`getpeername()`
+* 3.`getpeername()`验证连接
 
 ### Http代理验证方式
 当你发送`‘CONNECT %s:%s HTTP/1.1\r\nHost: %s:%s\r\nProxy-Connection: keep-alive\r\n\r\n’%（ip,port)`,接收到的response包含`b'Connection established'`表明，可以作为代理。或者直接connect后`send()`一个get请求
