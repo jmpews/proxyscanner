@@ -26,6 +26,7 @@ class Sock(object):
     def checktimeout(self, timeout=4):
         currenttime = int(time.time())
         if currenttime - self.starttime > timeout:
+            self.sock.close()
             return True
         return False
 
@@ -228,7 +229,7 @@ class ProxyIOLoop(threading.Thread):
         self.ips = func()
 
     # 删除超时socket,补充列表数量
-    def updateips(self,lens=900):
+    def updateips(self,lens=500):
 
         # 使用filter,也可以使用for
         self.outputsocks=dict(filter(lambda x:not x[1].checktimeout(4),self.outputsocks.items()))
