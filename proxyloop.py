@@ -5,6 +5,7 @@ import socket
 import time
 import select
 import threading
+import struct
 
 MyLock = threading.RLock()
 
@@ -18,6 +19,10 @@ class Sock(object):
         self.sock_fileno = self.sock.fileno()
         self.starttime = int(time.time())
         self.sock.setblocking(0)
+        # 端口复用
+        self.sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        # close发送RST,不存在TIME_WAIT状态
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
         # EINPROGRESS
         self.errno = self.sock.connect_ex((ip, port))
         self.connected = False
@@ -229,7 +234,7 @@ class ProxyIOLoop(threading.Thread):
         self.ips = func()
 
     # 删除超时socket,补充列表数量
-    def updateips(self,lens=500):
+    def updateips(self,lens=1000):
 
         # 使用filter,也可以使用for
         self.outputsocks=dict(filter(lambda x:not x[1].checktimeout(4),self.outputsocks.items()))
@@ -268,11 +273,22 @@ class ProxyIOLoop(threading.Thread):
         self.outputs = [x.sock for x in self.outputsocks.values() if not x.connected]
         self.inputs = [x.sock for x in self.inputsocks.values() if x.connected]
 
+
+    def select(self,timeout=1):
+        while True:
+            try:
+                readable, writeable, exceptional = select.select(self.inputs, self.outputs, self.outputs + self.inputs, 1)
+            except Exception as e:
+                # over 1024
+                print(e)
+                time.sleep(3)
+            else:
+                return readable, writeable, exceptional
     def run(self):
         while True:
             # 先检查超时socket
             self.updateips()
-            readable, writeable, exceptional = select.select(self.inputs, self.outputs, self.outputs + self.inputs, 1)
+            readable, writeable, exceptional = self.select(timeout=1)
             for x in writeable:
                 sock = self.outputsocks.pop(x.fileno())
                 if sock.senddata():
