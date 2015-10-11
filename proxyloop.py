@@ -246,6 +246,9 @@ class ProxyIOLoop(threading.Thread):
             if len(self.ipsl)<a:
                 for ip,port,proxytype in self.ipsl:
                     sock = Proxy.initialize(ip, port, proxytype)
+                    if sock.sock_fileno>1023:
+                        sock.sock.close()
+                        return
                     self.outputsocks[sock.sock_fileno] = sock
                 a=a-len(self.ipsl)
                 self.ipsl=[]
@@ -254,6 +257,9 @@ class ProxyIOLoop(threading.Thread):
                 tmp_value=self.ipsl[:a]
                 for ip,port,proxytype in tmp_value:
                     sock = Proxy.initialize(ip, port, proxytype)
+                    if sock.sock_fileno>1023:
+                        sock.sock.close()
+                        return
                     self.outputsocks[sock.sock_fileno] = sock
                 self.ipsl=self.ipsl[a:]
         # maybe多余
@@ -263,6 +269,9 @@ class ProxyIOLoop(threading.Thread):
                 try:
                     ip, port, proxytype = self.ips.__next__()
                     sock = Proxy.initialize(ip, port, proxytype)
+                    if sock.sock_fileno>1023:
+                        sock.sock.close()
+                        return
                     self.outputsocks[sock.sock_fileno] = sock
                 except StopIteration:
                     # 执行完毕
@@ -288,7 +297,7 @@ class ProxyIOLoop(threading.Thread):
         while True:
             # 先检查超时socket
             self.updateips()
-            readable, writeable, exceptional = self.select(timeout=1)
+            readable, writeable, exceptional = select.select(self.inputs, self.outputs, self.outputs + self.inputs, 1)
             for x in writeable:
                 sock = self.outputsocks.pop(x.fileno())
                 if sock.senddata():
