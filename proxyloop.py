@@ -70,7 +70,7 @@ class ProxyHttp(Sock):
 
     # 发送检测数据
     def senddata(self):
-        checkstr = 'GET / HTTP/1.1\r\nHost:hm.baidu.com\r\n\r\n'
+        checkstr = 'GET / HTTP/1.1\r\nHost:202.207.209.82\r\n\r\n'
         if self.checkerror():
             try:
                 self.sock.send(checkstr.encode())
@@ -86,7 +86,7 @@ class ProxyHttp(Sock):
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
             data = self.sock.recv(1024)
-            if data.find(b'200 OK') != -1:
+            if data.find(b'hello') != -1:
                 # 验证成功处理
                 return True
         return False
