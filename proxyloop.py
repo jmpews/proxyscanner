@@ -238,7 +238,7 @@ class Loop(threading.Thread):
 
 class SelectIOLoop(Loop):
     def __init__(self,callback=None):
-        super(SelectIOLoop,self).__init__(self,callback=callback)
+        super(SelectIOLoop,self).__init__(callback=callback)
         self.outputs=[]
         self.inputs=[]
         # 对于select我们采用第一种方法 inputs和outputs分开
@@ -309,7 +309,7 @@ class SelectIOLoop(Loop):
 
 class EPollLoop(Loop):
     def __init__(self,callback=None):
-        super(EPollLoop,self).__init__(self,callback=callback)
+        super(EPollLoop,self).__init__(callback=callback)
         self.epoll = select.epoll()
         # 这里采用第二种法
         self.socks={}
