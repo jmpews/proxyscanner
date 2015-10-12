@@ -70,7 +70,7 @@ class ProxyHttp(Sock):
 
     # 发送检测数据
     def senddata(self):
-        checkstr = 'GET / HTTP/1.1\r\nHost:202.207.209.82\r\n\r\n'
+        checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
         if self.checkerror():
             try:
                 self.sock.send(checkstr.encode())
@@ -86,7 +86,7 @@ class ProxyHttp(Sock):
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
             data = self.sock.recv(1024)
-            if data.find(b'hello') != -1:
+            if data.find(b'loadLoginInfo') != -1:
                 # 验证成功处理
                 return True
         return False
@@ -129,51 +129,6 @@ class Proxy:
             return ProxyHttp(ip, port, proxytype)
         elif proxytype == 'socks':
             return ProxySocks(ip, port, proxytype)
-
-
-# 普通模式
-# sock=ProxySock(ip,port,proxytype)
-class ProxySock(Sock):
-    def __init__(self, ip, port, proxytype):
-        super(ProxySock, self).__init__(ip, port)
-        self.proxytype = proxytype
-        pass
-
-    def senddata(self):
-        if self.checkerror():
-            if self.proxytype == 'http':
-                connstr = 'GET / HTTP/1.1\r\nHost:hm.baidu.com\r\n\r\n'
-                try:
-                    self.sock.send(connstr.encode())
-                except:
-                    # 做异常处理
-                    self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-                    self.sock.close()
-                    return False
-                else:
-                    return True
-            elif self.proxytype == 'socks':
-                try:
-                    self.sock.send(b'\x05\x02\x00\x02')
-                except:
-                    # 做异常处理
-                    self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-                    self.sock.close()
-                    return False
-                else:
-                    return True
-
-    def checkdata(self):
-        if self.checkerror() and self.checkconnected():
-            data = self.sock.recv(1024)
-            if self.proxytype == 'http':
-                if data.find(b'200 OK') != -1:
-                    # 验证成功处理
-                    return True
-            elif self.proxytype == 'socks':
-                if data.find(b'\x05\x00') != -1:
-                    # 验证成功处理
-                    return True
 
 # 暂不使用
 class LockContext(object):
