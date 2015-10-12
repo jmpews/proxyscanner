@@ -315,15 +315,17 @@ class EPollLoop(Loop):
         self.socks={}
 
     def dealtimeout(self):
+        tmp=[]
         for k,v in self.socks.items():
             if v.connected:
                 if v.checktimeout(5):
-                    self.epoll.unregister(k)
-                    self.socks.pop(k)
+                    tmp.append(k)
             else:
                 if v.checktimeout(4):
-                    self.epoll.unregister(k)
-                    self.socks.pop(k)
+                    tmp.append(k)
+        for k in tmp:
+            self.epoll.unregister(k)
+            self.socks.pop(k)
 
     # 删除超时socket,补充列表数量
     def updateips(self,lens=2000):
