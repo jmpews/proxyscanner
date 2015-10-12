@@ -317,11 +317,11 @@ class EPollLoop(Loop):
     def dealtimeout(self):
         for k,v in self.socks.items():
             if v.connected:
-                if v[1].checktimeout(5):
+                if v.checktimeout(5):
                     self.epoll.unregister(k)
                     self.socks.pop(k)
             else:
-                if v[1].checktimeout(4):
+                if v.checktimeout(4):
                     self.epoll.unregister(k)
                     self.socks.pop(k)
 
