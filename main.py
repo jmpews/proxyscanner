@@ -35,7 +35,7 @@ def func(ip,port,proxytype):
 
 
 # 添加基本回调,可以丢进redis
-proxyloop=ProxyIOLoop(callback=func)
+proxyloop=ProxyIOLoop.initialize(callback=func)
 
 # 检测proxy是否可用
 r_http=gethttps()
