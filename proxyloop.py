@@ -86,6 +86,7 @@ class ProxyHttp(Sock):
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
             data = self.sock.recv(1024)
+            self.sock.close()
             if data.find(b'loadLoginInfo') != -1:
                 # 验证成功处理
                 return True
@@ -114,6 +115,7 @@ class ProxySocks(Sock):
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
             data = self.sock.recv(1024)
+            self.sock.close()
             if data.find(b'\x05\x00') != -1:
                 # 验证成功处理
                 return True
@@ -315,7 +317,7 @@ class EPollLoop(Loop):
     def run(self):
         while True:
             self.updateips()
-            events=self.epoll.poll()
+            events=self.epoll.poll(1)
             for fd,event in events:
                 if event & select.EPOLLOUT:
                     sock=self.socks[fd]
