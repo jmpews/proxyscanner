@@ -29,7 +29,7 @@ def getsocks5():
 def func(ip,port,proxytype):
     print(ip,':',port)
     f=open('r.txt','a')
-    f.write(ip+':'+str(port)+' '+proxytype+'  '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+'\n')
+    f.write(ip+':'+str(port)+' '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+'\n')
     f.flush()
     f.close()
 
