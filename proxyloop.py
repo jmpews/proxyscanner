@@ -321,9 +321,9 @@ class EPollLoop(Loop):
             for fd,event in events:
                 if event & select.EPOLLOUT:
                     sock=self.socks[fd]
-                    if sock.checkdata():
-                        if self.callback != None:
-                            self.callback(sock.ip,sock.port,sock.proxytype)
+                    if sock.senddata():
+                        sock.setconnected()
+                        self.epoll.modify(fd, select.EPOLLIN)
 
                 if event & select.EPOLLIN:
                     sock=self.socks.pop(fd)
