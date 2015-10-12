@@ -295,7 +295,7 @@ class EPollLoop(Loop):
                     sock.sock.close()
                     break
                 self.socks[sock.sock_fileno] = sock
-                self.epoll.register(sock.sock_fileno,select.EPOLLIN)
+                self.epoll.register(sock.sock_fileno,select.EPOLLOUT)
                 self.ipsl.remove((ip,port,proxytype))
             if len(self.ipsl)==0 and self.ips==None:
                 self.runout=True
@@ -309,7 +309,7 @@ class EPollLoop(Loop):
                         sock.sock.close()
                         break
                     self.socks[sock.sock_fileno] = sock
-                    self.epoll.register(sock.sock_fileno,select.EPOLLIN)
+                    self.epoll.register(sock.sock_fileno,select.EPOLLOUT)
                 except StopIteration:
                     # 执行完毕
                     self.runout = True
