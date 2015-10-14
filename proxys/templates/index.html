@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>喵代理</title>
+    <script src="//cdn.bootcss.com/jquery/3.0.0-alpha1/jquery.min.js"></script>
+    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/site.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="header"
+     style="background-image: url(http://static.bootcss.com/expo/img/d/dd/2de797545de56274f03a5920eb3a1.jpg)">
+    <div class="logoimg">
+        <a href="http://expo.bootcss.com" title="Bootstrap 优站精选"><img
+                src="http://image.youzhan.org/e/35/22ccaf4c24ef690f7767e6a3ba5f0.png" alt="Bootstrap 优站精选"
+                width="78"></a>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="logotxt"><h1><a href="http://expo.bootcss.com">喵代理</a></h1></div>
+                <h2 class="site-name text-center">Free Proxy<span>www.proxy.jmpews.com</span></h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="main">
+    <table class="table table-striped proxylist">
+        <thead>
+            <tr>
+                <th>IP</th>
+                <th>Port</th>
+                <th>Type</th>
+                <th>CheckTime</th>
+                <th>Speed</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for proxy in proxylist %}
+        <tr>
+            <th>{{proxy.ip}}</th>
+            <td>{{proxy.port}}</td>
+            <td>{{proxy.type}}</td>
+            <td>{{proxy.create_time.strftime("%Y-%m-%d %H:%M:%S")}}</td>
+            <td>{{proxy.connect_time}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

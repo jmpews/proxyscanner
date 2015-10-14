@@ -1,0 +1,51 @@
+.header {
+    background: #222;
+    background-repeat: no-repeat;
+    background-position: center 0;
+    background-size: cover;
+    padding: 138px 0 0;
+    text-align: center;
+    min-height: 400px;
+    position: relative
+}
+
+.logoimg {
+    position: absolute;
+    left: 1%;
+    right: 1%;
+    bottom: -34px
+}
+
+.logotxt {
+    margin-bottom: 30px;
+    border: 0
+}
+
+.logotxt a {
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    font-size: 64px
+}
+
+.header h2 {
+    color: #fff;
+    padding: 0;
+    margin: 0 0 45px;
+    font-weight: 100;
+    font-size: 34px
+}
+
+.site-name > span {
+    display: none;
+    margin-top: 6px;
+    font-size: 65%
+}
+
+.main {
+    margin-top: 90px;
+}
+.proxylist {
+    width: 90%;
+    margin: 0 auto;
+}
