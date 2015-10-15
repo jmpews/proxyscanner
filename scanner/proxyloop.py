@@ -91,6 +91,9 @@ class ProxyHttp(Sock):
             if data.find(b'loadLoginInfo') != -1:
                 # 验证成功处理
                 return True
+            else:
+                print('CheckDataError:',self.ip,':',self.port)
+                return False
         return False
 
 
@@ -120,6 +123,9 @@ class ProxySocks(Sock):
             if data.find(b'\x05\x00') != -1:
                 # 验证成功处理
                 return True
+            else:
+                print('CheckDataError:',self.ip,':',self.port)
+                return False
         return False
 
 
@@ -335,6 +341,7 @@ class EPollLoop(Loop):
                         if self.callback != None:
                             connect_time=int(time.time()-sock.starttime)
                             self.callback(sock.ip,sock.port,sock.proxytype,connect_time)
+
             if len(self.socks)==0 and self.runout:
                 print('Loop empty...')
                 time.sleep(2)

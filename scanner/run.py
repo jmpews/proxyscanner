@@ -37,11 +37,11 @@ proxyloop=ProxyIOLoop.initialize(callback=func)
 
 # 检测proxy是否可用
 r_http=gethttps()
-proxyloop.addipsl(r_http)
+# proxyloop.addipsl(r_http)
 
 # 添加一个IP段列表,进行扫描
 iplists=[]
-ipfile=open('ip_shanghai.txt','r',encoding='utf-8')
+ipfile=open('ip_beijing.txt','r',encoding='utf-8')
 for line in ipfile:
     tmp=line.split('\t')
     iplists.append((tmp[0],tmp[1]))
