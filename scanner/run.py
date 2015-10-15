@@ -21,8 +21,6 @@ def gethttps():
 
 
 def func(ip,port,proxytype,connect_time):
-    print(ip,':',port)
-    print(connect_time)
     p=Proxy(ip,port,proxytype,connect_time)
     session.add(p)
     session.commit()

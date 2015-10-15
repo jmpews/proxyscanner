@@ -92,8 +92,9 @@ class ProxyHttp(Sock):
                 # 验证成功处理
                 return True
             elif data.find(b'HTTP/1.1') != -1:
-                print('WebServer',self.ip,':',self.port)
-                return False
+                self.proxytype='Server'
+                print('Server',self.ip,':',self.port)
+                return True
         return False
 
 
@@ -124,7 +125,8 @@ class ProxySocks(Sock):
                 # 验证成功处理
                 return True
             elif data.find(b'HTTP/1.1') != -1:
-                print('WebServer:',self.ip,':',self.port)
+                self.proxytype='Server'
+                print('Server:',self.ip,':',self.port)
                 return False
         return False
 
