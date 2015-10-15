@@ -10,5 +10,5 @@ index_module=Module(__name__)
 def index():
     r_type=request.args.get('proxytype','http')
     # proxylist=Proxy.query.all()
-    proxylist=Proxy.query.filter_by(type=r_type).limit(1000).all()
+    proxylist=Proxy.query.filter_by(type=r_type).order_by(Proxy.id.desc()).limit(100)
     return render_template('index.html',proxylist=proxylist)

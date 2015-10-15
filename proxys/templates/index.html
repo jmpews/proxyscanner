@@ -39,7 +39,7 @@
         <tbody>
         {% for proxy in proxylist %}
         <tr>
-            <th>{{proxy.ip}}</th>
+            <th><a href="http://{{proxy.ip}}" target="_bank">{{proxy.ip}}</a></th>
             <td>{{proxy.port}}</td>
             <td>{{proxy.type}}</td>
             <td>{{proxy.create_time.strftime("%Y-%m-%d %H:%M:%S")}}</td>
