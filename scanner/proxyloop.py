@@ -91,8 +91,8 @@ class ProxyHttp(Sock):
             if data.find(b'loadLoginInfo') != -1:
                 # 验证成功处理
                 return True
-            else:
-                print('CheckDataError:',self.ip,':',self.port)
+            elif data.find(b'HTTP/1.1') != -1:
+                print(':',self.ip,':',self.port)
                 return False
         return False
 
@@ -123,8 +123,8 @@ class ProxySocks(Sock):
             if data.find(b'\x05\x00') != -1:
                 # 验证成功处理
                 return True
-            else:
-                print('CheckDataError:',self.ip,':',self.port)
+            elif data.find(b'HTTP/1.1') != -1:
+                print(':',self.ip,':',self.port)
                 return False
         return False
 
