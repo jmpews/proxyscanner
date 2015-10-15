@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 import datetime
 
 Base = declarative_base()
-engine=create_engine('sqlite:///../test.db',echo=True)
+engine=create_engine('sqlite:///../test.db',echo=False)
 
 class Proxy(Base):
     __tablename__='Proxylist'
