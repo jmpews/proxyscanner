@@ -16,7 +16,7 @@ def func():
 def func():
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('180.169.18.9',80))
+    sock.connect(('180.169.19.109',80))
     checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
     sock.send(checkstr.encode())
     data=sock.recv(1024)
