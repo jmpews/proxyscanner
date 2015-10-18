@@ -15,7 +15,7 @@ def func5():
 def func4():
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('202.106.169.142',80))
+    sock.connect(('58.253.238.243',80))
     checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
     sock.send(checkstr.encode())
     data=sock.recv(1024)
@@ -32,7 +32,7 @@ def func2():
         print(ip,':',port,'-',proxytype)
     # 添加基本回调
     proxyloop=ProxyIOLoop.initialize(callback=func)
-    proxyloop.scanips([('42.159.152.215','42.159.152.235')])
+    proxyloop.scanips([('121.52.240.175','121.52.240.181')])
     proxyloop.start()
 
 def func3():
@@ -61,5 +61,6 @@ def func6():
     proxyloop=ProxyIOLoop.initialize(callback=func)
     proxyloop.addipsl(checkproxylist)
     proxyloop.start()
-func6()
-# func4()
+
+# func6()
+func2()

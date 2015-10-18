@@ -21,6 +21,7 @@ def gethttps():
 
 
 def func(ip,port,proxytype,connect_time):
+    print('扫描到一个IP')
     p=Proxy(ip,port,proxytype,connect_time)
     session.add(p)
     session.commit()
@@ -28,14 +29,30 @@ def func(ip,port,proxytype,connect_time):
     # f.write(ip+':'+str(port)+' '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+'\n')
     # f.flush()
     # f.close()
+def TimerCheck():
+    def func(ip,port,proxytype,connect_time):
+        p=Proxy(ip,port,proxytype,connect_time)
+        session.add(p)
+        session.commit()
+    r=session.query(Proxy).filter(Proxy.type=='http').all()
+    session.query(Proxy).filter(Proxy.type=='http').delete()
+    session.commit()
+    checkproxylist=[]
+    print('原有长度',len(r))
+    for t in r:
+        checkproxylist.append((t.ip,t.port))
+    proxyloop.addipsl(checkproxylist,callback=func)
 
+def func2(ip,port,proxytype,connect_time):
+    print(ip,port,proxytype,connect_time)
 
 # 添加基本回调
 proxyloop=ProxyIOLoop.initialize(callback=func)
+proxyloop.addtimer(TimerCheck,3600,once=False)
 
 # 检测proxy是否可用
-r_http=gethttps()
-# proxyloop.addipsl(r_http)
+# r_http=gethttps()
+# proxyloop.addipsl(r_http,callback=func2)
 
 # 添加一个IP段列表,进行扫描
 iplists=[]
@@ -45,6 +62,7 @@ for line in ipfile:
     iplists.append((tmp[0],tmp[1]))
 
 proxyloop.scanips(iplists,proxytype='http')
+
 
 proxyloop.start()
 print('Proxy Scan Start...')
