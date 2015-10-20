@@ -9,13 +9,15 @@ import struct
 import datetime
 
 MyLock = threading.RLock()
-
+import re
+p=re.compile(r'jmpews0307:(\w+?):')
 
 # 一个socket对象
 class Sock(object):
     def __init__(self, ip, port,callback=None):
         self.ip = ip
         self.port = port
+        self.anonymous='None'
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock_fileno = self.sock.fileno()
         self.starttime = int(time.time())
@@ -89,13 +91,13 @@ class ProxyHttp(Sock):
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
             data = self.sock.recv(1024).decode()
-            data=data.split(':')
-            print(data)
             self.sock.close()
-            if data.find(b'loadLoginInfo') != -1:
-                # 验证成功处理
+            r=p.findall(data)
+            if len(r)!=0:
+                self.anonymous=r[0]
+                print(self.anonymous)
                 return True
-            elif data.find(b'HTTP/1.1 200 OK') != -1:
+            elif data.find('HTTP/1.1 200 OK') != -1:
                 self.proxytype='Server'
                 print('Server',self.ip,':',self.port)
                 return True

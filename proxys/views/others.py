@@ -22,4 +22,4 @@ def checkproxy():
         else:
             code='notknow'
         # print(request.headers.get('User-Agent'))
-        return 'jmpews0307:'+code
+        return 'jmpews0307:'+code+':'
