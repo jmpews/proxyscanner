@@ -61,7 +61,8 @@ proxyloop.addtimer(TimerCheck,3600,once=False)
 iplists=[]
 ipfile=open('ip_check.txt','r',encoding='utf-8')
 for line in ipfile:
-    tmp=line.split('\t')
+    # tmp=line.split('\t')
+    tmp=line.split(':')
     iplists.append((tmp[0],tmp[1]))
 proxyloop.addipsl(iplists,callback=func2)
 # proxyloop.scanips(iplists,proxytype='http')
