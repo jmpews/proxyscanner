@@ -6,7 +6,7 @@ from flask import request
 @app.route('/checkproxy')
 def checkproxy():
     if request.method=='GET':
-        localip='127.0.0.1'
+        localip='112.126.76.80'
         remote_ip=request.args.get('rip','127.0.0.1')
         proxy_ip1=request.environ.get('HTTP_VIA',None)
         proxy_ip2=request.environ.get('HTTP_X_FORWARDED_FOR',None)

@@ -74,7 +74,7 @@ class ProxyHttp(Sock):
 
     # 发送检测数据
     def senddata(self):
-        checkstr = 'GET /checkproxy?rip=%s HTTP/1.1\r\nHost:127.0.0.1:5000\r\n\r\n' %(self.ip)
+        checkstr = 'GET /checkproxy?rip=%s HTTP/1.1\r\nHost:proxy.linevery.com\r\n\r\n' %(self.ip)
         # checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
         if self.checkerror():
             try:
