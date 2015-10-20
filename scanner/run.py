@@ -59,15 +59,13 @@ proxyloop.addtimer(TimerCheck,3600,once=False)
 
 # 添加一个IP段列表,进行扫描
 iplists=[]
-ipfile=open('ip_check.txt','r',encoding='utf-8')
+ipfile=open('ip_zhejiang.txt','r',encoding='utf-8')
 for line in ipfile:
-    # tmp=line.split('\t')
-    tmp=line.split(':')
+    tmp=line.split('\t')
     iplists.append((tmp[0],tmp[1]))
-proxyloop.addipsl(iplists,callback=func2)
-# proxyloop.scanips(iplists,proxytype='http')
+# proxyloop.addipsl(iplists,callback=func2)
 # proxyloop.scanips([('182.254.153.50','182.254.153.59')],proxytype='http')
-
+proxyloop.scanips(iplists,proxytype='http')
 
 proxyloop.start()
 print('Proxy Scan Start...')
