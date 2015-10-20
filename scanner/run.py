@@ -45,6 +45,7 @@ def TimerCheck():
 
 def func2(ip,port,proxytype,anonymous,connect_time):
     p=Proxy(ip,port,proxytype,anonymous,connect_time)
+    print(p)
     session.add(p)
     session.commit()
 
