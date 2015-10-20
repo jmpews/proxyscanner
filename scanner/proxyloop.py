@@ -287,9 +287,9 @@ class SelectIOLoop(Loop):
                 if sock.checkdata():
                     connect_time=int(time.time()-sock.starttime)
                     if sock.callback==None:
-                        self.scancallback(sock.ip,sock.port,sock.proxytype,connect_time)
+                        self.scancallback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
                     else:
-                        sock.callback(sock.ip,sock.port,sock.proxytype,connect_time)
+                        sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
 
             for x in exceptional:
                 print('proxy error!')
@@ -366,9 +366,9 @@ class EPollLoop(Loop):
                     if sock.checkdata():
                         connect_time=int(time.time()-sock.starttime)
                         if sock.callback==None:
-                            self.scancallback(sock.ip,sock.port,sock.proxytype,connect_time)
+                            self.scancallback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
                         else:
-                            sock.callback(sock.ip,sock.port,sock.proxytype,connect_time)
+                            sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
 
             if len(self.socks)==0 and self.runout:
                 print('Loop empty...')
