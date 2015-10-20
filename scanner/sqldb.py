@@ -16,13 +16,15 @@ class Proxy(Base):
     ip=Column(String(15))
     port=Column(Integer)
     type=Column(String(8))
+    anonymous=Column(String(16))
     connect_time=Column(Integer)
     create_time = Column(DateTime)
 
-    def __init__(self,ip,port,type,connect_time):
+    def __init__(self,ip,port,type,anonymous,connect_time):
         self.ip=ip
         self.port=port
         self.type=type
+        self.anonymous=anonymous
         self.connect_time=connect_time
         self.create_time=datetime.now()
     def __repr__(self):

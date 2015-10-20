@@ -20,9 +20,9 @@ def gethttps():
     return result
 
 
-def func(ip,port,proxytype,connect_time):
+def func(ip,port,proxytype,anonymous,connect_time):
     print('扫描到一个IP')
-    p=Proxy(ip,port,proxytype,connect_time)
+    p=Proxy(ip,port,proxytype,anonymous,connect_time)
     session.add(p)
     session.commit()
     # f=open('r.txt','a')
@@ -30,8 +30,8 @@ def func(ip,port,proxytype,connect_time):
     # f.flush()
     # f.close()
 def TimerCheck():
-    def func(ip,port,proxytype,connect_time):
-        p=Proxy(ip,port,proxytype,connect_time)
+    def func(ip,port,proxytype,anonymous,connect_time):
+        p=Proxy(ip,port,proxytype,anonymous,connect_time)
         session.add(p)
         session.commit()
     r=session.query(Proxy).filter(Proxy.type=='http').all()
@@ -43,8 +43,8 @@ def TimerCheck():
         checkproxylist.append((t.ip,t.port))
     proxyloop.addipsl(checkproxylist,callback=func)
 
-def func2(ip,port,proxytype,connect_time):
-    print(ip,port,proxytype,connect_time)
+def func2(ip,port,proxytype,anonymous,connect_time):
+    print(ip,port,proxytype,anonymous,connect_time)
 
 # 添加基本回调
 proxyloop=ProxyIOLoop.initialize(callback=func)

@@ -33,6 +33,7 @@
                 <th>Port</th>
                 <th>Type</th>
                 <th>CheckTime</th>
+                <th>Anonymous</th>
                 <th>Speed</th>
             </tr>
         </thead>
@@ -42,6 +43,7 @@
             <th><a href="http://{{proxy.ip}}" target="_bank">{{proxy.ip}}</a></th>
             <td>{{proxy.port}}</td>
             <td>{{proxy.type}}</td>
+            <td>{{proxy.anonymous}}</td>
             <td>{{proxy.create_time.strftime("%Y-%m-%d %H:%M:%S")}}</td>
             <td>{{proxy.connect_time}}</td>
         </tr>
