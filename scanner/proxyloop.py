@@ -72,7 +72,8 @@ class ProxyHttp(Sock):
 
     # 发送检测数据
     def senddata(self):
-        checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
+        checkstr = 'GET /checkproxy?rip=%s HTTP/1.1\r\nHost:127.0.0.1:5000\r\n\r\n' %(self.ip)
+        # checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
         if self.checkerror():
             try:
                 self.sock.send(checkstr.encode())
@@ -87,7 +88,9 @@ class ProxyHttp(Sock):
     # 检测返回数据
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
-            data = self.sock.recv(1024)
+            data = self.sock.recv(1024).decode()
+            data=data.split(':')
+            print(data)
             self.sock.close()
             if data.find(b'loadLoginInfo') != -1:
                 # 验证成功处理

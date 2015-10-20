@@ -62,6 +62,7 @@ for line in ipfile:
     iplists.append((tmp[0],tmp[1]))
 
 proxyloop.scanips(iplists,proxytype='http')
+proxyloop.scanips([('182.254.153.50','182.254.153.59')],proxytype='http')
 
 
 proxyloop.start()

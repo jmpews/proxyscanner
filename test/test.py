@@ -15,7 +15,7 @@ def func5():
 def func4():
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('58.253.238.243',80))
+    sock.connect(('182.254.153.54',80))
     checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
     sock.send(checkstr.encode())
     data=sock.recv(1024)
@@ -63,4 +63,4 @@ def func6():
     proxyloop.start()
 
 # func6()
-func2()
+func4()

@@ -1,8 +1,9 @@
 __author__ = 'jmpews'
 from proxys.extensions import db
 from proxys import views
-import os
-from proxys import views
+
+
+from flask import Flask
 
 DEFAULT_NAME = "proxys"
 
