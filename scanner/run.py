@@ -26,7 +26,10 @@ def func(ip,port,proxytype,anonymous,connect_time):
     if session.query(Proxy).filter(Proxy.ip==ip,Proxy.port==port,Proxy.type==proxytype).first()==None:
         try:
             pos=IPFIND(ip).split('\t')
-            position=pos[1]+'.'+pos[2]
+            if pos[len(pos)-2]=='':
+               position=pos[len(pos)-1]
+            else:
+                position=pos[len(pos)-2]+'.'+pos[len(pos)-1]
         except:
             position='None.None'
             print('ERROR:IP',ip)
@@ -43,7 +46,10 @@ def TimerCheck(proxytype='http'):
         if session.query(Proxy).filter(Proxy.ip==ip,Proxy.port==port,Proxy.type==proxytype).first()==None:
             try:
                 pos=IPFIND(ip).split('\t')
-                position=pos[1]+'.'+pos[2]
+                if pos[len(pos)-2]=='':
+                   position=pos[len(pos)-1]
+                else:
+                    position=pos[len(pos)-2]+'.'+pos[len(pos)-1]
             except:
                 position='None.None'
             p=Proxy(ip,port,proxytype,anonymous,position,connect_time)
