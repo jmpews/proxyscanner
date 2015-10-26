@@ -10,7 +10,7 @@ import datetime
 
 MyLock = threading.RLock()
 import re
-p=re.compile(r'jmpews0307:(\w+?):')
+p=re.compile(b'jmpews0307:(\w+?):')
 
 # 一个socket对象
 class Sock(object):
@@ -90,16 +90,14 @@ class ProxyHttp(Sock):
     # 检测返回数据
     def checkdata(self):
         if self.checkerror() and self.checkconnected():
-            data = self.sock.recv(1024).decode()
+            data = self.sock.recv(1024)
             self.sock.close()
             r=p.findall(data)
             if len(r)!=0:
-                self.anonymous=r[0]
-                print(self.anonymous)
+                self.anonymous=r[0].decode()
                 return True
-            elif data.find('HTTP/1.1 200 OK') != -1:
+            elif data.find(b'HTTP/1.1 200 OK') != -1:
                 self.proxytype='Server'
-                print('Server',self.ip,':',self.port)
                 return True
         return False
 

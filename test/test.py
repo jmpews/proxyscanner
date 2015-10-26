@@ -27,7 +27,7 @@ def func4():
         print(data)
 
 def func2():
-    from scanner.proxyloop import ProxyIOLoop
+    from scanner.ext.proxyloop import ProxyIOLoop
     def func(ip,port,proxytype,connect_time):
         print(ip,':',port,'-',proxytype)
     # 添加基本回调
@@ -36,7 +36,7 @@ def func2():
     proxyloop.start()
 
 def func3():
-    from scanner.proxyloop import ProxyIOLoop
+    from scanner.ext.proxyloop import ProxyIOLoop
     def func(ip,port,proxytype,connect_time):
         print(ip,':',port,'-',proxytype)
     # 添加基本回调
@@ -46,21 +46,21 @@ def func3():
 
 
 def func6():
-    from scanner.sqldb import session,Proxy
-    from scanner.proxyloop import ProxyIOLoop
+    from scanner.ext.sqldb import session,Proxy
     def func(ip,port,proxytype,connect_time):
         p=Proxy(ip,port,proxytype,connect_time)
         session.add(p)
         session.commit()
-    r=session.query(Proxy).filter(Proxy.type=='http').all()
-    session.query(Proxy).filter(Proxy.type=='http').delete()
-    session.commit()
-    checkproxylist=[]
-    for t in r:
-        checkproxylist.append((t.ip,t.port))
-    proxyloop=ProxyIOLoop.initialize(callback=func)
-    proxyloop.addipsl(checkproxylist)
-    proxyloop.start()
+    r=session.query(Proxy).filter(Proxy.type=='httpp').first()
+    print(r)
+    # session.query(Proxy).filter(Proxy.type=='http').delete()
+    # session.commit()
+    # checkproxylist=[]
+    # for t in r:
+    #     checkproxylist.append((t.ip,t.port))
+    # proxyloop=ProxyIOLoop.initialize(callback=func)
+    # proxyloop.addipsl(checkproxylist)
+    # proxyloop.start()
 
 # func6()
-func4()
+func6()

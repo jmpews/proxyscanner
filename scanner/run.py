@@ -1,12 +1,14 @@
 __author__ = 'jmpews'
 __email__ = 'jmpews@gmail.com'
 
-import requests
-import time
 import sys
+
+import requests
+
 sys.path.append('..')
-from scanner.proxyloop import ProxyIOLoop
-from scanner.sqldb import session,Proxy
+from scanner.ext import session,ProxyIOLoop,Proxy
+
+from scanner.ext import find as IPFIND
 
 def gethttps():
     result=[]
@@ -21,48 +23,55 @@ def gethttps():
 
 
 def func(ip,port,proxytype,anonymous,connect_time):
-    print('扫描到一个IP')
-    p=Proxy(ip,port,proxytype,anonymous,connect_time)
-    session.add(p)
-    session.commit()
+    if session.query(Proxy).filter(Proxy.ip==ip,Proxy.port==port,Proxy.type==proxytype).first()==None:
+        try:
+            pos=IPFIND(ip).split('\t')
+            position=pos[1]+'.'+pos[2]
+        except:
+            position='None.None'
+            print('ERROR:IP',ip)
+        p=Proxy(ip,port,proxytype,anonymous,position,connect_time)
+        session.add(p)
+        session.commit()
     # f=open('r.txt','a')
     # f.write(ip+':'+str(port)+' '+time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())+'\n')
     # f.flush()
     # f.close()
-def TimerCheck():
+
+def TimerCheck(proxytype='http'):
     def func(ip,port,proxytype,anonymous,connect_time):
-        p=Proxy(ip,port,proxytype,anonymous,connect_time)
-        session.add(p)
-        session.commit()
-    r=session.query(Proxy).filter(Proxy.type=='http').all()
-    session.query(Proxy).filter(Proxy.type=='http').delete()
+        if session.query(Proxy).filter(Proxy.ip==ip,Proxy.port==port,Proxy.type==proxytype).first()==None:
+            try:
+                pos=IPFIND(ip).split('\t')
+                position=pos[1]+'.'+pos[2]
+            except:
+                position='None.None'
+            p=Proxy(ip,port,proxytype,anonymous,position,connect_time)
+            session.add(p)
+            session.commit()
+    r=session.query(Proxy).filter(Proxy.type==proxytype).all()
+    session.query(Proxy).filter(Proxy.type==proxytype).delete()
     session.commit()
     checkproxylist=[]
     print('原有长度',len(r))
     for t in r:
         checkproxylist.append((t.ip,t.port))
+    checkproxylist+=checkproxylist
     proxyloop.addipsl(checkproxylist,callback=func)
-
-def func2(ip,port,proxytype,anonymous,connect_time):
-    p=Proxy(ip,port,proxytype,anonymous,connect_time)
-    print(p)
-    session.add(p)
-    session.commit()
 
 # 添加基本回调
 proxyloop=ProxyIOLoop.initialize(callback=func)
-proxyloop.addtimer(TimerCheck,3600,once=False)
-
-# 检测proxy是否可用
-# r_http=gethttps()
-# proxyloop.addipsl(r_http,callback=func2)
+proxyloop.addtimer(TimerCheck,3600*12,once=False)
 
 # 添加一个IP段列表,进行扫描
+filelist=['ip_beijing.txt','ip_shanghai.txt','ip_zhejiang.txt','ip_guangdong.txt']
 iplists=[]
-ipfile=open('ip_zhejiang.txt','r',encoding='utf-8')
-for line in ipfile:
-    tmp=line.split('\t')
-    iplists.append((tmp[0],tmp[1]))
+for f in filelist:
+    ipfile=open('iplists/'+f,'r',encoding='utf-8')
+    for line in ipfile:
+        tmp=line.split('\t')
+        iplists.append((tmp[0],tmp[1]))
+    ipfile.close()
 # proxyloop.addipsl(iplists,callback=func2)
 # proxyloop.scanips([('182.254.153.50','182.254.153.59')],proxytype='http')
 proxyloop.scanips(iplists,proxytype='http')

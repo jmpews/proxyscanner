@@ -17,21 +17,24 @@ class Proxy(Base):
     port=Column(Integer)
     type=Column(String(8))
     anonymous=Column(String(16))
+    position=Column(String(16))
     connect_time=Column(Integer)
     create_time = Column(DateTime)
 
-    def __init__(self,ip,port,type,anonymous,connect_time):
+    def __init__(self,ip,port,type,anonymous,position,connect_time):
         self.ip=ip
         self.port=port
         self.type=type
         self.anonymous=anonymous
+        self.position=position
         self.connect_time=connect_time
         self.create_time=datetime.now()
     def __repr__(self):
-        return "<%s:%s:%s>" % (self.ip,self.port,self.type)
+        return "<%s:%s:%s>" % (self.ip,self.port,self.position)
 
 
 Base.metadata.create_all(engine)
+print('success')
 Session = sessionmaker(bind=engine)
 session=Session()
 
