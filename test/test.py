@@ -1,4 +1,6 @@
-# test
+# Test
+
+# SQLAlchemy测试
 def func5():
     from flask import Flask
     from proxys.application import init_app
@@ -11,11 +13,11 @@ def func5():
         print(t.ip)
 
 
-# proxy test
+# 手动检测该IP是否存在http proxy
 def func4():
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(('182.254.153.54',80))
+    sock.connect(('183.128.236.177',3128))
     checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
     sock.send(checkstr.encode())
     data=sock.recv(1024)
@@ -44,7 +46,7 @@ def func3():
     proxyloop.addipsl([('183.43.184.2',3128),('183.43.54.124',3128)])
     proxyloop.start()
 
-
+# 检测SQLALChemy
 def func6():
     from scanner.ext.sqldb import session,Proxy
     def func(ip,port,proxytype,connect_time):
@@ -63,4 +65,4 @@ def func6():
     # proxyloop.start()
 
 # func6()
-func6()
+func4()
