@@ -70,7 +70,7 @@ proxyloop=ProxyIOLoop.initialize(callback=func)
 proxyloop.addtimer(TimerCheck,3600*12,once=False)
 
 # 添加一个IP段列表,进行扫描
-filelist=['ip_beijing.txt','ip_shanghai.txt','ip_zhejiang.txt','ip_guangdong.txt']
+filelist=['ip_guangdong.txt','ip_zhejiang.txt','ip_shanghai.txt','ip_beijing.txt']
 iplists=[]
 for f in filelist:
     ipfile=open('iplists/'+f,'r',encoding='utf-8')
