@@ -66,3 +66,6 @@ def func6():
 
 # func6()
 func4()
+import pymysql
+
+pymysql.connect()

@@ -361,6 +361,7 @@ class EPollLoop(Loop):
 
                 if event & select.EPOLLIN:
                     sock=self.socks.pop(fd)
+                    self.epoll.unregister(fd)
                     if sock.checkdata():
                         connect_time=int(time.time()-sock.starttime)
                         if sock.callback==None:
