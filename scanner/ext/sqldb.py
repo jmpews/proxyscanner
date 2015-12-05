@@ -34,7 +34,6 @@ class Proxy(Base):
 
 
 Base.metadata.create_all(engine)
-print('success')
 Session = sessionmaker(bind=engine)
 session=Session()
 

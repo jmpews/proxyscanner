@@ -3,23 +3,11 @@ __email__ = 'jmpews@gmail.com'
 
 import sys
 
-import requests
 
 sys.path.append('..')
 from scanner.ext import session,ProxyIOLoop,Proxy
 
 from scanner.ext import find as IPFIND
-
-def gethttps():
-    result=[]
-    url='http://proxy.mimvp.com/api/fetch.php?orderid=860150919155536286&num=30&country_group=1&http_type=1,2&isp=3,5&anonymous=5&result_format=json'
-    r=requests.get(url)
-    r=r.json()
-    r=r['result']
-    for x in r:
-        ip,port=x['ip:port'].split(':')
-        result.append((ip,int(port)))
-    return result
 
 
 def func(ip,port,proxytype,anonymous,connect_time):
@@ -79,8 +67,9 @@ for f in filelist:
         iplists.append((tmp[0],tmp[1]))
     ipfile.close()
 # proxyloop.addipsl(iplists,callback=func2)
-# proxyloop.scanips([('182.254.153.50','182.254.153.59')],proxytype='http')
-proxyloop.scanips(iplists,proxytype='http')
+proxyloop.scanips([('139.162.0.1','182.254.31.255')],proxytype=3)
+# proxyloop.scanips([('23.110.7.22','23.110.7.42')],proxytype=3)
+# proxyloop.scanips(iplists,proxytype='http')
 
 proxyloop.start()
 print('Proxy Scan Start...')

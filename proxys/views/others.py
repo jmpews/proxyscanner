@@ -23,3 +23,8 @@ def checkproxy():
             code='notknow'
         # print(request.headers.get('User-Agent'))
         return 'jmpews0307:'+code+':'
+
+@app.route('/shadowsocks')
+def shadowsocks():
+    if request.method=='GET':
+        return 'shadowsocks'

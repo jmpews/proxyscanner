@@ -1,25 +1,32 @@
-__author__ = 'jmpews'
-__email__ = 'jmpews@gmail.com'
-
+import logging
 import socket
 import time
 import select
 import threading
 import struct
 import datetime
+import re
 
 MyLock = threading.RLock()
-import re
+
 p=re.compile(b'jmpews0307:(\w+?):')
 
-# 一个socket对象
+PROXY_SOCKS5=1
+PROXY_HTTP=2
+PROXY_SS=3
+
+HOST=b'proxy.linevery.com'
+HOST_IP=''
+
 class Sock(object):
+    """
+    socket 对象
+    """
     def __init__(self, ip, port,callback=None):
         self.ip = ip
         self.port = port
-        self.anonymous='None'
+        # self.anonymous='None'
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock_fileno = self.sock.fileno()
         self.starttime = int(time.time())
         self.sock.setblocking(0)
         # 端口复用
@@ -27,7 +34,7 @@ class Sock(object):
         # close发送RST,不存在TIME_WAIT状态
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
         # EINPROGRESS
-        self.errno = self.sock.connect_ex((ip, port))
+        self.sock.connect_ex((ip, port))
         self.connected = False
         self.callback=callback
 
@@ -35,135 +42,133 @@ class Sock(object):
     def checktimeout(self, timeout=4):
         currenttime = int(time.time())
         if currenttime - self.starttime > timeout:
-            self.sock.close()
             return True
         return False
 
-    # 检测error
-    def checkerror(self):
-        # 常见error ECONNREFUSED ETIMEDOUT EHOSTUNREACH
-        self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-        if self.errno == 0 or self.errno==socket.errno.EINPROGRESS:
-            return True
-        self.sock.close()
-        return False
+    # # 检测error
+    # def checkerror(self):
+    #     # 常见error ECONNREFUSED ETIMEDOUT EHOSTUNREACH
+    #     self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
+    #     if self.errno == 0 or self.errno==socket.errno.EINPROGRESS:
+    #         return True
+    #     return False
 
-    # 检测是否建立好连接
-    def checkconnected(self):
-        try:
-            host = self.sock.getpeername()
-        except:
-            # 做异常处理
-            self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-            self.sock.close()
-            return False
-        else:
-            self.rip, self.rport = host
-            return True
 
     # 设置建立连接
     def setconnected(self):
         self.connected = True
         self.starttime = int(time.time())
 
+
+    def send(self,data):
+        try:
+            self.sock.send(data)
+        except:
+            logging.error('! %s:%s send error'%(self.ip,self.port))
+            self.sock.close()
+            return False
+        else:
+            return True
+
+    def recv(self):
+        try:
+            data = self.sock.recv(1024)
+            return data
+        except:
+            logging.error('! %s:%s recv error'%(self.ip,self.port))
+        finally:
+            self.sock.close()
+        return False
 # HTTP代理对象
 class ProxyHttp(Sock):
-    def __init__(self, ip, port, proxytype,callback=None):
+    def __init__(self, ip, port,callback=None):
         super(ProxyHttp, self).__init__(ip, port,callback)
-        self.proxytype = proxytype
 
     # 发送检测数据
     def senddata(self):
         checkstr = 'GET /checkproxy?rip=%s HTTP/1.1\r\nHost:proxy.linevery.com\r\n\r\n' %(self.ip)
-        # checkstr = 'GET /nav.js HTTP/1.1\r\nHost:interface.bilibili.com\r\n\r\n'
-        if self.checkerror():
-            try:
-                self.sock.send(checkstr.encode())
-            except:
-                # 做异常处理
-                self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-                self.sock.close()
-                return False
-            else:
-                return True
+        return self.send(checkstr.encode())
 
     # 检测返回数据
     def checkdata(self):
-        if self.checkerror() and self.checkconnected():
-            data = self.sock.recv(1024)
-            self.sock.close()
+        data = self.sock.recv(1024)
+        if data:
             r=p.findall(data)
             if len(r)!=0:
                 self.anonymous=r[0].decode()
-                return True
-            elif data.find(b'HTTP/1.1 200 OK') != -1:
-                self.proxytype='Server'
                 return True
         return False
 
 
 # socks5代理
-class ProxySocks(Sock):
-    def __init__(self, ip, port, proxytype,callback=None):
-        super(ProxySocks, self).__init__(ip, port,callback)
-        self.proxytype = proxytype
+class ProxySocks5(Sock):
+    def __init__(self, ip, port,callback=None):
+        super(ProxySocks5, self).__init__(ip, port,callback)
 
-    # 发送检测数据
     def senddata(self):
-        if self.checkerror():
-            try:
-                self.sock.send(b'\x05\x02\x00\x02')
-            except:
-                # 做异常处理
-                self.errno = self.sock.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
-                self.sock.close()
-                return False
-            else:
-                return True
-    # 检测返回数据
+        return self.send(b'\x05\x02\x00\x02')
+
     def checkdata(self):
-        if self.checkerror() and self.checkconnected():
-            data = self.sock.recv(1024)
-            self.sock.close()
+        data = self.recv()
+        if data:
             if data.find(b'\x05\x00') != -1:
-                # 验证成功处理
                 return True
         return False
 
+
+# shadowsocks
+from scanner.ext import encrypt,common
+encryptor = encrypt.Encryptor(b'password', 'aes-256-cfb')
+# shadowsocksdata=common.pack_addr('112.126.76.80')+b'\x00\x50'+b'GET /shadowsocks HTTP/1.1\r\nHost:'+HOST+b'\r\n\r\n'
+shadowsocksdata=common.pack_addr('112.126.76.80')+b'\x00\x50'+b'GET / HTTP/1.1\r\nHost:weixin.sxuhome.com\r\n\r\n'
+shadowsocksdata = encryptor.encrypt(shadowsocksdata)
+class ProxyShadowsocks(Sock):
+    def __init__(self, ip, port,callback=None):
+        super(ProxyShadowsocks, self).__init__(ip, port,callback)
+    def senddata(self):
+        return self.send(shadowsocksdata)
+
+    def checkdata(self):
+        data = self.recv()
+        if data:
+            data=encryptor.decrypt(data)
+            print(data)
+            if data.find(b'Hello')!=-1:
+                print('success')
+                print(self.ip)
+        return False
+
+ss=ProxyShadowsocks('23.110.7.32',443)
+time.sleep(3)
+ss.senddata()
+time.sleep(3)
+ss.checkdata()
 
 # 工厂模式
 # sock=Porxy.initialize(self,ip,port,proxytype)
 class Proxy:
     @classmethod
     def initialize(cls, ip, port, proxytype,callback=None):
-        if proxytype == 'http':
-            return ProxyHttp(ip, port, proxytype,callback)
-        elif proxytype == 'socks':
-            return ProxySocks(ip, port, proxytype,callback)
+        if proxytype == PROXY_HTTP:
+            return ProxyHttp(ip, port, callback)
+        elif proxytype ==PROXY_SOCKS5:
+            return ProxySocks5(ip, port, callback)
+        elif proxytype ==PROXY_SS:
+            return ProxyShadowsocks(ip, port, callback)
 
-# 暂不使用
-class LockContext(object):
-    def __init__(self, lock):
-        self.lock = lock
 
-    def __enter__(self):
-        self.lock.acquire()
-
-    def __exit__(self, type, value, traceback):
-        if type != None:
-            pass
-        self.lock.release()
-        return False
 
 class Loop(threading.Thread):
     def __init__(self,callback):
+        """
+         如何处理待接受和待发送的socket?
+        一种方法,可以选择将output和input分开存放
+        self.outputsocks={}
+        self.inputsocks={}
+        另一种方法,合并,用connected属性标记区分,在select需要重新生成两部socket列表
+        self.socks = {}
+        """
         threading.Thread.__init__(self)
-        # 如何处理待接受和待发送的socket?
-        # 一种方法,可以选择将output和input分开存放
-        # self.outputsocks={}
-        # self.inputsocks={}
-        # 另一种方法,合并,用connected属性标记区分,在select需要重新生成两部socket列表
-        # self.socks = {}
         self.runout = False
         self.ips=None
         self.ipsl=[]
@@ -197,7 +202,7 @@ class Loop(threading.Thread):
 
     # 扫描IP段
     # 采用生成器防止大列表爆掉
-    def scanips(self, ips,proxytype='http', ports=[80,3128]):
+    def scanips(self, ips,proxytype='http', ports=[443]):
         def s2n(str):
             i = [int(x) for x in str.split('.')]
             return i[0] << 24 | i[1] << 16 | i[2] << 8 | i[3]
@@ -222,11 +227,13 @@ class Loop(threading.Thread):
 
 
 class SelectIOLoop(Loop):
+    """
+    对于select我们采用第一种方法 inputs和outputs分开
+    """
     def __init__(self,callback):
         super(SelectIOLoop,self).__init__(callback=callback)
         self.outputs=[]
         self.inputs=[]
-        # 对于select我们采用第一种方法 inputs和outputs分开
         self.outputsocks={}
         self.inputsocks={}
 
@@ -242,10 +249,10 @@ class SelectIOLoop(Loop):
         if len(self.ipsl)!=0:
             for ip,port,proxytype,callback in self.ipsl:
                 sock = Proxy.initialize(ip, port, proxytype,callback)
-                if sock.sock_fileno>lens:
+                if sock.sock.fileno():
                     sock.sock.close()
                     break
-                self.outputsocks[sock.sock_fileno] = sock
+                self.outputsocks[sock.sock.fileno()] = sock
                 self.ipsl.remove((ip,port,proxytype,callback))
             if len(self.ipsl)==0 and self.ips==None:
                 self.runout=True
@@ -254,10 +261,10 @@ class SelectIOLoop(Loop):
                 try:
                     ip, port, proxytype = self.ips.__next__()
                     sock = Proxy.initialize(ip, port, proxytype)
-                    if sock.sock_fileno>lens:
+                    if sock.sock.fileno()>lens:
                         sock.sock.close()
                         break
-                    self.outputsocks[sock.sock_fileno] = sock
+                    self.outputsocks[sock.sock.fileno()] = sock
                 except StopIteration:
                     # 执行完毕
                     self.runout = True
@@ -323,11 +330,11 @@ class EPollLoop(Loop):
         if len(self.ipsl)!=0:
             for ip,port,proxytype,callback in self.ipsl:
                 sock = Proxy.initialize(ip, port, proxytype,callback)
-                if sock.sock_fileno>lens:
+                if sock.sock.fileno() >lens:
                     sock.sock.close()
                     break
-                self.socks[sock.sock_fileno] = sock
-                self.epoll.register(sock.sock_fileno,select.EPOLLOUT|select.EPOLLET)
+                self.socks[sock.sock.fileno()] = sock
+                self.epoll.register(sock.sock.fileno(),select.EPOLLOUT|select.EPOLLET)
                 self.ipsl.remove((ip,port,proxytype,callback))
             if len(self.ipsl)==0 and self.ips==None:
                 self.runout=True
@@ -337,11 +344,11 @@ class EPollLoop(Loop):
                 try:
                     ip, port, proxytype = self.ips.__next__()
                     sock = Proxy.initialize(ip, port, proxytype)
-                    if sock.sock_fileno>lens:
+                    if sock.sock.fileno()>lens:
                         sock.sock.close()
                         break
-                    self.socks[sock.sock_fileno] = sock
-                    self.epoll.register(sock.sock_fileno,select.EPOLLOUT|select.EPOLLET)
+                    self.socks[sock.sock.fileno()] = sock
+                    self.epoll.register(sock.sock.fileno(),select.EPOLLOUT|select.EPOLLET)
                 except StopIteration:
                     # 执行完毕
                     self.runout = True
