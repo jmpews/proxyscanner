@@ -64,7 +64,7 @@ class Sock(object):
         try:
             self.sock.send(data)
         except:
-            logging.error('! %s:%s send error'%(self.ip,self.port))
+            # logging.error('! %s:%s send error'%(self.ip,self.port))
             self.sock.close()
             return False
         else:
@@ -75,7 +75,8 @@ class Sock(object):
             data = self.sock.recv(1024)
             return data
         except:
-            logging.error('! %s:%s recv error'%(self.ip,self.port))
+            # logging.error('! %s:%s recv error'%(self.ip,self.port))
+            pass
         finally:
             self.sock.close()
         return False
@@ -132,17 +133,17 @@ class ProxyShadowsocks(Sock):
         data = self.recv()
         if data:
             data=encryptor.decrypt(data)
-            print(data)
+            # print(data)
             if data.find(b'Hello')!=-1:
                 print('success')
                 print(self.ip)
         return False
 
-ss=ProxyShadowsocks('23.110.7.32',443)
-time.sleep(3)
-ss.senddata()
-time.sleep(3)
-ss.checkdata()
+# ss=ProxyShadowsocks('23.110.7.32',443)
+# time.sleep(3)
+# ss.senddata()
+# time.sleep(3)
+# ss.checkdata()
 
 # 工厂模式
 # sock=Porxy.initialize(self,ip,port,proxytype)
@@ -221,6 +222,7 @@ class Loop(threading.Thread):
                     for port in ports:
                         yield n2ip(t), port, proxytype
 
+
         self.ips = func()
 
 
@@ -298,6 +300,9 @@ class SelectIOLoop(Loop):
 
             for x in exceptional:
                 print('proxy error!')
+
+            print(self.ips.__next__())
+
             # 生成器没有数据并且socks全部处理完毕,跳出循环.
             if len(self.inputsocks)==0 and len(self.outputsocks)==0 and self.runout:
                 print('Loop empty...')
