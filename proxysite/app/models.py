@@ -1,8 +1,9 @@
 __author__ = 'jmpews'
-from flask.ext.sqlalchemy import BaseQuery
-from flask.ext.sqlalchemy import SQLAlchemy
-from proxys.extensions import db
 import datetime
+
+from flask.ext.sqlalchemy import BaseQuery
+
+from app.extensions import db
 
 
 class ProxyQuery(BaseQuery):

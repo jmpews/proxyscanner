@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function, \
 
 import hashlib
 
-from scanner.ext.shadowsocks.crypto import openssl
+from ext.shadowsocks.crypto import openssl
 
 __all__ = ['ciphers']
 

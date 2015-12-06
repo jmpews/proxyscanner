@@ -3,11 +3,11 @@
 # # SQLAlchemy测试
 # def func5():
 #     from flask import Flask
-#     from proxys.application import init_app
+#     from app.application import init_app
 #     app = Flask('ScanProxy')
 #     init_app(app)
 #     app.test_request_context().push()
-#     from proxys.models import Proxy
+#     from app.models import Proxy
 #     proxylist=Proxy.query.filter_by(type='http').order_by(Proxy.id.desc())
 #     for t in proxylist:
 #         print(t.ip)

@@ -5,9 +5,10 @@ import sys
 
 
 sys.path.append('..')
-from scanner.ext import session,ProxyIOLoop,Proxy
+from ext import session,Proxy
+from ext.proxyloop import ProxyIOLoop
 
-from scanner.ext import find as IPFIND
+from ext import find as IPFIND
 
 
 def func(ip,port,proxytype,anonymous,connect_time):
@@ -66,6 +67,7 @@ for f in filelist:
         tmp=line.split('\t')
         iplists.append((tmp[0],tmp[1]))
     ipfile.close()
+
 # proxyloop.addipsl(iplists,callback=func2)
 proxyloop.scanips([('139.162.0.1','182.254.31.255')],proxytype=3)
 # proxyloop.scanips([('23.110.7.22','23.110.7.42')],proxytype=3)

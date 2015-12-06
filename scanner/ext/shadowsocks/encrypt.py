@@ -22,8 +22,9 @@ import sys
 import hashlib
 import logging
 
-from scanner.ext.shadowsocks import common
-from scanner.ext.shadowsocks .crypto import rc4_md5, openssl, sodium, table
+from . import common
+# from .shadowsocks import common
+from .crypto import rc4_md5, openssl, sodium, table
 
 
 method_supported = {}
