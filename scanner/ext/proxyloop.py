@@ -205,19 +205,24 @@ class EPollLoop(Loop):
         self.socks={}
 
     def dealtimeout(self):
+        tmp=[]
         for fd,sock in self.socks.items():
             if sock.connected:
                 if sock.checktimeout(5):
                     sock.sock.close()
                     self.epoll.unregister(fd)
-                    self.socks.pop(fd)
+                    # self.socks.pop(fd)
+                    tmp.append(fd)
+
 
             else:
                 if sock.checktimeout(3):
                     sock.sock.close()
                     self.epoll.unregister(fd)
-                    self.socks.pop(fd)
-
+                    # self.socks.pop(fd)
+                    tmp.append(fd)
+        for fd in tmp:
+            self.socks.pop(fd)
 
 
     def updateips(self,MAX_CONNECT=2000):
