@@ -179,15 +179,16 @@ class SelectIOLoop(Loop):
             for x in readable:
                 sock = self.inputsocks.pop(x.fileno())
                 try:
-                    sock.checkdata()
+                    if sock.checkdata():
+                        connect_timeout=int(time.time()-sock.starttime)
+                        if sock.callback==None:
+                            self.default_callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
+                        else:
+                            sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
                 except GeneralProxyError:
                     print(' read error')
-                else:
-                    connect_timeout=int(time.time()-sock.starttime)
-                    if sock.callback==None:
-                        self.default_callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
-                    else:
-                        sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
+                finally:
+                    sock.sock.close()
 
 
             # 生成器没有数据并且socks全部处理完毕,跳出循环.
@@ -276,16 +277,18 @@ class EPollLoop(Loop):
                     sock=self.socks.pop(fd)
                     self.epoll.unregister(fd)
                     try:
-                        sock.checkdata()
+                        if sock.checkdata():
+
+                            connect_timeout=int(time.time()-sock.starttime)
+                            if sock.callback==None:
+                                self.default_callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
+                            else:
+                                sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
                     except GeneralProxyError:
                         print(' read error')
+                    finally:
+                        sock.sock.close()
 
-                    else:
-                        connect_timeout=int(time.time()-sock.starttime)
-                        if sock.callback==None:
-                            self.default_callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
-                        else:
-                            sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
 
             if len(self.socks)==0 and self.runout:
                 print('Loop empty...')

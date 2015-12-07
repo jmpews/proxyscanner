@@ -82,11 +82,11 @@ class Sock(object):
     def recv(self):
         try:
             data = self.sock.recv(1024)
+            # self.sock.close()
         except:
             # logging.error('! %s:%s recv error'%(self.ip,self.port))
             if self.checkerror():
                 logging.info('> normal error.')
-            self.sock.close()
             raise GeneralProxyError("recv error")
         return data
 
@@ -103,7 +103,7 @@ class ProxyHttp(Sock):
 
     # 检测返回数据
     def checkdata(self):
-        status,data = self.sock.recv(1024)
+        data = self.sock.recv(1024)
         r=p.findall(data)
         if len(r)!=0:
             self.anonymous=r[0].decode()
