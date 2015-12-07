@@ -1,9 +1,8 @@
 import time
 import select
 import threading
-from .proxysock import Proxy
-
-
+from .proxysock import Proxy,GeneralProxyError
+from .utils import n2ip,ip2n
 class Loop(threading.Thread):
     def __init__(self,callback):
         """
@@ -19,7 +18,11 @@ class Loop(threading.Thread):
         self.ips=None
         self.ipsl=[]
         self.callbacks=[]
-        self.scancallback=callback
+        self.default_callback=callback
+        self.sum_ipsl=0
+        self.sum_ips=0
+        self.scanned_ips=0
+        self.scanned_ipsl=0
 
     def addtimer(self,func,timeout,once=1):
         cur=int(time.time())
@@ -36,34 +39,34 @@ class Loop(threading.Thread):
                 self.callbacks.remove((func,prev,timeout,once))
                 if not once:
                     self.callbacks.append((func,cur,timeout,once))
-                func()
+                func(self)
             else:
                 break
     # ip列表
     def addipsl(self, ipsl,callback=None,proxytype='http'):
-        # 根据现成list生成
-        # [[ip,port]]
+        """
+
+        :param ipsl: [[ip,port],[ip,port]]
+        :param callback:
+        :param proxytype:
+        :return:
+        """
+        self.sum_ipsl=len(ipsl)
+
         for ip,port in ipsl:
             self.ipsl.append((ip,port,proxytype,callback))
 
     # 扫描IP段
     # 采用生成器防止大列表爆掉
     def scanips(self, ips,proxytype='http', ports=[443]):
-        def s2n(str):
-            i = [int(x) for x in str.split('.')]
-            return i[0] << 24 | i[1] << 16 | i[2] << 8 | i[3]
 
-        def n2ip(num):
-            return '%s.%s.%s.%s' % (
-                (num & 0xFF000000) >> 24,
-                (num & 0x00FF0000) >> 16,
-                (num & 0x0000FF00) >> 8,
-                (num & 0x000000FF)
-            )
+        for s,e in ips:
+            self.sum_ips+=(ip2n(e)-ip2n(s))
+
         # 根据IP段生成列表
         def func():
             for s, e in ips:
-                for t in range(s2n(s), s2n(e)):
+                for t in range(ip2n(s), ip2n(e)):
                     for port in ports:
                         yield n2ip(t), port, proxytype
 
@@ -84,68 +87,108 @@ class SelectIOLoop(Loop):
         self.inputsocks={}
 
     def dealtimeout(self):
-        # 使用filter,也可以使用for
-        self.outputsocks=dict(filter(lambda x:not x[1].checktimeout(4),self.outputsocks.items()))
-        self.inputsocks=dict(filter(lambda x:not x[1].checktimeout(5),self.inputsocks.items()))
+        """
+        1. 手动处理超时,关闭连接,
+        2. 使用filter,也可以使用for
+            self.outputsocks=dict(filter(lambda x:not x[1].checktimeout(4),self.outputsocks.items()))
+            self.inputsocks=dict(filter(lambda x:not x[1].checktimeout(5),self.inputsocks.items()))
+        """
+        tmp=[]
+        for fd,sock in self.outputsocks.items():
+            if sock.checktimeout(5):
+                sock.sock.close()
+                tmp.append(fd)
+        for fd in tmp:
+            self.outputsocks.pop(fd)
 
-    # 删除超时socket,补充列表数量
-    def updateips(self,lens=1000):
+
+        tmp=[]
+        for fd,sock in self.inputsocks.items():
+            if sock.checktimeout(3):
+                sock.sock.close()
+                tmp.append(fd)
+        for fd in tmp:
+            self.inputsocks.pop(fd)
+
+
+    def updateips(self,MAX_CONNECT=1000):
+        """
+        1. 删除超时的socket
+        2. 补充socket连接池,维持数量
+
+        :param lens:连接池的数量
+        :return:
+        """
         self.dealtimeout()
-        # 补充socket数量,以保持充分利用
+
         if len(self.ipsl)!=0:
             for ip,port,proxytype,callback in self.ipsl:
                 sock = Proxy.initialize(ip, port, proxytype,callback)
-                if sock.sock.fileno():
+                if sock.sock.fileno()>MAX_CONNECT:
                     sock.sock.close()
                     break
                 self.outputsocks[sock.sock.fileno()] = sock
                 self.ipsl.remove((ip,port,proxytype,callback))
+                self.scanned_ipsl+=1
             if len(self.ipsl)==0 and self.ips==None:
                 self.runout=True
+
         if self.ips!=None:
             while True:
                 try:
                     ip, port, proxytype = self.ips.__next__()
                     sock = Proxy.initialize(ip, port, proxytype)
-                    if sock.sock.fileno()>lens:
+                    if sock.sock.fileno()>MAX_CONNECT:
                         sock.sock.close()
                         break
                     self.outputsocks[sock.sock.fileno()] = sock
+                    self.scanned_ips+=1
                 except StopIteration:
                     # 执行完毕
                     self.runout = True
                     break
 
     def run(self):
+        """
+        1. 新的线程执行事件循环
+        2. 检查定时器
+        3. 更新socket连接池
+
+        :return:
+        """
+
         while True:
             self.checktimer()
-            # 先检查超时socket
             self.updateips()
-            # 扫描两次,可以通过for用一次替代,也可以使用filter
-            # self.outputs=list(filter(lambda x:not x.connected,self.socks.values()))
+
             self.outputs = [x.sock for x in self.outputsocks.values()]
             self.inputs = [x.sock for x in self.inputsocks.values()]
 
-            readable, writeable, exceptional = select.select(self.inputs, self.outputs, self.outputs + self.inputs, 1)
+            readable, writeable, exceptional = select.select(self.inputs, self.outputs,[] , 1)
+
             for x in writeable:
                 sock = self.outputsocks.pop(x.fileno())
-                if sock.senddata():
+                try:
+                    sock.senddata()
+                except GeneralProxyError:
+                    print('! send error')
+                else:
                     sock.setconnected()
                     self.inputsocks[x.fileno()]=sock
 
             for x in readable:
                 sock = self.inputsocks.pop(x.fileno())
-                if sock.checkdata():
-                    connect_time=int(time.time()-sock.starttime)
+                try:
+                    sock.checkdata()
+                except GeneralProxyError:
+                    print(' read error')
+                else:
+                    connect_timeout=int(time.time()-sock.starttime)
                     if sock.callback==None:
-                        self.scancallback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
+                        self.default_callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
                     else:
-                        sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
+                        sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
 
-            for x in exceptional:
-                print('proxy error!')
-
-            print(self.ips.__next__())
 
             # 生成器没有数据并且socks全部处理完毕,跳出循环.
             if len(self.inputsocks)==0 and len(self.outputsocks)==0 and self.runout:
@@ -153,38 +196,42 @@ class SelectIOLoop(Loop):
                 time.sleep(2)
 
 class EPollLoop(Loop):
+    """
+    采用第二种方法把input和output放在一个socks列表
+    """
     def __init__(self,callback):
         super(EPollLoop,self).__init__(callback=callback)
         self.epoll = select.epoll()
-        # 这里采用第二种法
         self.socks={}
 
     def dealtimeout(self):
-        tmp=[]
-        for k,v in self.socks.items():
-            if v.connected:
-                if v.checktimeout(5):
-                    tmp.append(k)
-            else:
-                if v.checktimeout(4):
-                    tmp.append(k)
-        for k in tmp:
-            self.epoll.unregister(k)
-            self.socks.pop(k)
+        for fd,sock in self.socks.items():
+            if sock.connected:
+                if sock.checktimeout(5):
+                    sock.sock.close()
+                    self.epoll.unregister(fd)
+                    self.socks.pop(fd)
 
-    # 删除超时socket,补充列表数量
-    def updateips(self,lens=2000):
+            else:
+                if sock.checktimeout(3):
+                    sock.sock.close()
+                    self.epoll.unregister(fd)
+                    self.socks.pop(fd)
+
+
+
+    def updateips(self,MAX_CONNECT=2000):
         self.dealtimeout()
-        # 补充socket数量,以保持充分利用
         if len(self.ipsl)!=0:
             for ip,port,proxytype,callback in self.ipsl:
                 sock = Proxy.initialize(ip, port, proxytype,callback)
-                if sock.sock.fileno() >lens:
+                if sock.sock.fileno() >MAX_CONNECT:
                     sock.sock.close()
                     break
                 self.socks[sock.sock.fileno()] = sock
                 self.epoll.register(sock.sock.fileno(),select.EPOLLOUT|select.EPOLLET)
                 self.ipsl.remove((ip,port,proxytype,callback))
+                self.scanned_ipsl+=1
             if len(self.ipsl)==0 and self.ips==None:
                 self.runout=True
         # maybe多余
@@ -193,13 +240,13 @@ class EPollLoop(Loop):
                 try:
                     ip, port, proxytype = self.ips.__next__()
                     sock = Proxy.initialize(ip, port, proxytype)
-                    if sock.sock.fileno()>lens:
+                    if sock.sock.fileno()>MAX_CONNECT:
                         sock.sock.close()
                         break
                     self.socks[sock.sock.fileno()] = sock
                     self.epoll.register(sock.sock.fileno(),select.EPOLLOUT|select.EPOLLET)
+                    self.scanned_ips+=1
                 except StopIteration:
-                    # 执行完毕
                     self.runout = True
                     break
 
@@ -208,22 +255,32 @@ class EPollLoop(Loop):
             self.checktimer()
             self.updateips()
             events=self.epoll.poll(1)
+
             for fd,event in events:
                 if event & select.EPOLLOUT:
                     sock=self.socks[fd]
-                    if sock.senddata():
+                    try:
+                        sock.senddata()
+                    except GeneralProxyError:
+                        print(' read error')
+                    else:
                         sock.setconnected()
                         self.epoll.modify(fd, select.EPOLLIN|select.EPOLLET)
 
                 if event & select.EPOLLIN:
                     sock=self.socks.pop(fd)
                     self.epoll.unregister(fd)
-                    if sock.checkdata():
-                        connect_time=int(time.time()-sock.starttime)
+                    try:
+                        sock.checkdata()
+                    except GeneralProxyError:
+                        print(' read error')
+
+                    else:
+                        connect_timeout=int(time.time()-sock.starttime)
                         if sock.callback==None:
-                            self.scancallback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
+                            self.default_callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
                         else:
-                            sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_time)
+                            sock.callback(sock.ip,sock.port,sock.proxytype,sock.anonymous,connect_timeout)
 
             if len(self.socks)==0 and self.runout:
                 print('Loop empty...')

@@ -73,9 +73,9 @@ class Sock(object):
             self.sock.send(data)
         except:
             # logging.error('! %s:%s send error'%(self.ip,self.port))
-            self.sock.close()
             if self.checkerror():
                 logging.info('> normal error.')
+            self.sock.close()
             raise GeneralProxyError("send error")
 
     # 接收数据
@@ -97,8 +97,8 @@ class ProxyHttp(Sock):
 
     # 发送检测数据
     def senddata(self):
-        checkstr = 'GET /checkproxy?rip=%s HTTP/1.1\r\nHost:'+HOST+'\r\n\r\n' %(self.ip)
-        self.send(checkstr.encode())
+        # checkstr = 'GET /checkproxy?rip=%s HTTP/1.1\r\nHost:'+HOST+'\r\n\r\n' %(self.ip)
+        self.send(HTTP_REQ.encode())
 
 
     # 检测返回数据
@@ -184,16 +184,16 @@ if __name__=='__main__':
     # shadowsocksdata = encryptor.encrypt(shadowsocksdata)
     # payload=pack_addr('112.126.76.80')+b'\x00\x50'+b'GET / HTTP/1.1\r\nHost:weixin.sxuhome.com\r\n\r\n'
 
-    proxy=Proxy.initialize('23.110.7.32',443,proxytype=PROXY_SS)
-    from ext.utils import SSEncryptor
-    encryptor=SSEncryptor('password')
-    data=encryptor.encrypt(payload)
-    proxy.set_payload(data)
-    proxy.set_Encryptor(encryptor)
-
-    time.sleep(1)
-    proxy.senddata()
-    time.sleep(1)
-    proxy.checkdata()
+    # proxy=Proxy.initialize('23.110.7.32',443,proxytype=PROXY_SS)
+    # from ext.utils import SSEncryptor
+    # encryptor=SSEncryptor('password')
+    # data=encryptor.encrypt(payload)
+    # proxy.set_payload(data)
+    # proxy.set_Encryptor(encryptor)
+    #
+    # time.sleep(1)
+    # proxy.senddata()
+    # time.sleep(1)
+    # proxy.checkdata()
 
 

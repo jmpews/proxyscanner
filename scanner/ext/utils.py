@@ -34,3 +34,14 @@ def SSEncryptor(key):
     # encryptor = encrypt.Encryptor(b'password', 'aes-256-cfb')
     return encryptor
 
+def ip2n(str):
+    i = [int(x) for x in str.split('.')]
+    return i[0] << 24 | i[1] << 16 | i[2] << 8 | i[3]
+
+def n2ip(num):
+    return '%s.%s.%s.%s' % (
+        (num & 0xFF000000) >> 24,
+        (num & 0x00FF0000) >> 16,
+        (num & 0x0000FF00) >> 8,
+        (num & 0x000000FF)
+    )
